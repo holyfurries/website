@@ -100,9 +100,9 @@ by Git.
 ## Releases
 
 GitHub Actions checks builds and formatting on pushes to `main` and pull
-requests. The Release workflow builds archives for `x86_64-linux` and
-`aarch64-linux`, then imports each archive on a fresh runner and starts the
-website with NATS to check its health and public routes.
+requests. The Release workflow builds an `x86_64-linux` archive for the server's
+architecture, then imports it on a fresh runner and starts the website with NATS
+to check its health and public routes.
 
 Running Release manually produces downloadable workflow artifacts. Pushing a tag
 matching the Cargo version, such as `v0.1.0`, also publishes the verified

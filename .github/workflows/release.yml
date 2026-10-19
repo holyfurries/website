@@ -10,18 +10,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - system: x86_64-linux
-            runner: ubuntu-24.04
-          - system: aarch64-linux
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
-      TARGET_SYSTEM: ${{ matrix.system }}
+      TARGET_SYSTEM: x86_64-linux
       RELEASE_TAG: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -53,25 +45,17 @@ jobs:
           BASH
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: release-${{ matrix.system }}
+          name: release-x86_64-linux
           path: dist/*
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
   verify:
     needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - system: x86_64-linux
-            runner: ubuntu-24.04
-          - system: aarch64-linux
-            runner: ubuntu-24.04-arm
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:
-      TARGET_SYSTEM: ${{ matrix.system }}
+      TARGET_SYSTEM: x86_64-linux
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -79,7 +63,7 @@ jobs:
       - uses: cachix/install-nix-action@448cde739abec1eaf0646249e3d25bb8d9bc7702
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
-          name: release-${{ matrix.system }}
+          name: release-x86_64-linux
           path: dist
       - name: Import and run the release on a fresh runner
         run: |
