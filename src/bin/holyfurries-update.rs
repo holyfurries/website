@@ -233,6 +233,10 @@ fn command(program: &str, arguments: &[&str]) -> Result<(), UpdateError> {
     Ok(())
 }
 
+#[expect(
+    clippy::collapsible_if,
+    reason = "Repository rules require explicit nested control flow"
+)]
 async fn check_health(client: &Client, url: &str) -> Result<(), UpdateError> {
     for _ in 0..20 {
         if let Ok(response) = client.get(url).timeout(Duration::from_secs(2)).send().await {
@@ -265,7 +269,7 @@ mod tests {
                             .set_read_timeout(Some(Duration::from_secs(2)))
                             .unwrap();
                         let mut request = [0; 1024];
-                        stream.read(&mut request).unwrap();
+                        assert!(stream.read(&mut request).unwrap() > 0);
                         responses += 1;
                         let status = if responses <= 20 {
                             "503 Unavailable"

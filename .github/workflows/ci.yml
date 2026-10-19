@@ -27,6 +27,8 @@ jobs:
           nix develop --command tofu -chdir=ops fmt -check -recursive
       - name: Build and test
         run: nix flake check --print-build-logs
+      - name: Check Rust lints
+        run: nix develop --command cargo clippy --locked --all-targets -- -D warnings
       - name: Test infrastructure configuration
         run: |
           nix develop --command tofu -chdir=ops init -backend=false -input=false -lockfile=readonly
