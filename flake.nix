@@ -43,6 +43,7 @@
           devshells.default = {
             packages = with pkgs; [
               rust_toolchain
+              stdenv.cc
               nats-server
               natscli
               curl

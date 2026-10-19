@@ -81,6 +81,7 @@ jobs:
             task_package=$(cat "$task_extract_directory/store-path")
             [[ "$task_package" =~ ^/nix/store/[a-z0-9]{32}-holyfurries-[0-9.]+$ ]]
             nix-store --verify-path "$task_package"
+            test -x "$task_package/bin/holyfurries-update"
             task_pids=()
             trap 'if ((${#task_pids[@]})); then kill "${task_pids[@]}" 2>/dev/null || true; fi' EXIT
             nats-server --addr 127.0.0.1 --port 4422 > "$RUNNER_TEMP/nats.log" 2>&1 &
@@ -121,7 +122,9 @@ jobs:
         run: |
           nix shell --inputs-from . nixpkgs#gh --command bash -euo pipefail <<'BASH'
             if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-              gh release upload "$RELEASE_TAG" dist/* --clobber
+              mkdir "$RUNNER_TEMP/published-checksums"
+              gh release download "$RELEASE_TAG" --pattern '*.sha256' --dir "$RUNNER_TEMP/published-checksums"
+              cmp dist/holyfurries-x86_64-linux.tar.gz.sha256 "$RUNNER_TEMP/published-checksums/holyfurries-x86_64-linux.tar.gz.sha256"
             else
               gh release create "$RELEASE_TAG" dist/* --verify-tag --generate-notes --title "$RELEASE_TAG"
             fi

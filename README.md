@@ -86,9 +86,32 @@ The module runs the website and a private NATS service on loopback. Configure
 public routing and TLS in the host configuration. The deployment-specific
 `nixosModules.atlas` export contains the existing site's tunnel routing.
 
-Deployments are manual. Choose a revision whose CI and Release workflow tests
-have passed, then update only the website input in the host configuration.
-Replace `HOST` with the NixOS configuration name:
+The Atlas module enables automatic deployment of published stable releases.
+Every five minutes Atlas checks `holyfurries/website`, verifies the archive's
+SHA-256 checksum, imports its Nix closure, and switches only the website's
+profile. A failed restart or health check restores the previous package. No
+GitHub credentials or inbound deployment connection are required.
+
+Push a `vX.Y.Z` tag matching `Cargo.toml` to release. The Release workflow runs
+the full CI checks, builds the package, and tests the exported archive on a
+fresh runner before publishing it. Ordinary pushes to `main` run CI without
+deploying. Run `systemctl start holyfurries-update` on Atlas to check
+immediately; inspect deployments with `journalctl -u holyfurries-update`.
+
+For a manual rollback, stop `holyfurries-update.timer`, run
+`nix-env --profile /nix/var/nix/profiles/holyfurries --rollback`, and restart
+`holyfurries`. Resume the timer once the release issue is resolved. These
+commands require root. The current release is recorded in
+`/var/lib/holyfurries-update/deployed`.
+
+The generic module defaults to the package pinned by the host flake. Enable
+`services.holyfurries.autoUpdate.enable` to opt into release deployment on
+`x86_64-linux`. The initial profile uses the pinned package; subsequent releases
+persist across reboots and NixOS rebuilds. Updating NixOS still updates the
+service module and updater executable.
+
+To update the host's website input and service configuration, replace `HOST`
+with the NixOS configuration name:
 
 ```console
 nix flake update holyfurries --flake path:/etc/nixos
@@ -97,10 +120,10 @@ sudo ./result/bin/switch-to-configuration dry-activate
 sudo nixos-rebuild switch --flake path:/etc/nixos#HOST
 ```
 
-The host lockfile pins the deployed source revision. Importing a matching
-release archive first lets the rebuild reuse the tested package. Review the dry
-activation before switching. To return to the previous NixOS generation, use
-`sudo nixos-rebuild switch --rollback`.
+Importing a matching release archive first lets the rebuild reuse the tested
+package. Review the dry activation before switching. To return to the previous
+NixOS generation, use `sudo nixos-rebuild switch --rollback`; automatic release
+profiles have their own rollback described above.
 
 `ops/` manages the site's Cloudflare DNS records and HTTPS redirect. Supply
 `TF_VAR_zone_id` and `CLOUDFLARE_API_TOKEN` through the environment or a secret
