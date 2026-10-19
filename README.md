@@ -61,7 +61,9 @@ for Terraform. Keep generated files and vendored code unchanged.
 Colors use OKLCH. Typography, spacing, and gutters use
 [Utopia](https://utopia.fyi/) fluid clamps. Flex wrapping and auto-fit grids
 adapt to available space without layout breakpoints. Images show small blurred
-previews while loading and fade in after decoding.
+previews while loading and fade in after decoding. Pages enter with a quick
+upward movement. Browsers with cross-document view transitions also animate
+internal page navigation. Reduced-motion mode disables both effects.
 
 ## Deployment
 
@@ -83,6 +85,22 @@ Import its generic service module in the NixOS configuration:
 The module runs the website and a private NATS service on loopback. Configure
 public routing and TLS in the host configuration. The deployment-specific
 `nixosModules.atlas` export contains the existing site's tunnel routing.
+
+Deployments are manual. Choose a revision whose CI and Release workflow tests
+have passed, then update only the website input in the host configuration.
+Replace `HOST` with the NixOS configuration name:
+
+```console
+nix flake update holyfurries --flake path:/etc/nixos
+nix build path:/etc/nixos#nixosConfigurations.HOST.config.system.build.toplevel
+sudo ./result/bin/switch-to-configuration dry-activate
+sudo nixos-rebuild switch --flake path:/etc/nixos#HOST
+```
+
+The host lockfile pins the deployed source revision. Importing a matching
+release archive first lets the rebuild reuse the tested package. Review the dry
+activation before switching. To return to the previous NixOS generation, use
+`sudo nixos-rebuild switch --rollback`.
 
 `ops/` manages the site's Cloudflare DNS records and HTTPS redirect. Supply
 `TF_VAR_zone_id` and `CLOUDFLARE_API_TOKEN` through the environment or a secret

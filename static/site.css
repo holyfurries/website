@@ -1,4 +1,7 @@
-@layer reset, base, layout, components, preferences;
+@layer reset, base, layout, components, motion, preferences;
+@view-transition {
+    navigation: auto;
+}
 @layer reset {
     *,
     *::before,
@@ -777,8 +780,43 @@
         max-width: 100%;
     }
 }
+@layer motion {
+    main {
+        translate: 0 0;
+        transition: translate 0.14s ease-out;
+    }
+    @starting-style {
+        main {
+            translate: 0 0.25rem;
+        }
+    }
+    :root:active-view-transition main {
+        transition: none;
+    }
+    ::view-transition-group(root) {
+        animation: none;
+    }
+    ::view-transition-old(root) {
+        display: none;
+    }
+    ::view-transition-new(root) {
+        animation: page_enter 0.14s ease-out both;
+        mix-blend-mode: normal;
+    }
+    @keyframes page_enter {
+        from {
+            transform: translateY(0.25rem);
+        }
+        to {
+            transform: translateY(0);
+        }
+    }
+}
 @layer preferences {
     @media (prefers-reduced-motion: reduce) {
+        @view-transition {
+            navigation: none;
+        }
         html {
             scroll-behavior: auto;
         }
@@ -786,6 +824,12 @@
         *::before,
         *::after {
             transition: none !important;
+            animation: none !important;
+        }
+        ::view-transition-group(*),
+        ::view-transition-old(*),
+        ::view-transition-new(*) {
+            animation: none !important;
         }
     }
 }
