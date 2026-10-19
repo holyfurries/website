@@ -1,0 +1,248 @@
+use super::*;
+use axum::{body::Body, http::Request};
+use http_body_util::BodyExt;
+use std::process::{Child, Command, Stdio};
+use tower::ServiceExt;
+
+fn test_state() -> AppState {
+    AppState {
+        releases: watch::channel(Vec::new()).0,
+        streams: Arc::new(Semaphore::new(2)),
+        nats: None,
+        stopping: CancellationToken::new(),
+    }
+}
+
+#[tokio::test]
+async fn public_pages_links_metadata_and_assets() {
+    let app = router(test_state());
+    for path in [
+        "/",
+        "/games/crowns-adrift",
+        "/games/cold-orbit",
+        "/tools/spice-cad",
+    ] {
+        let response = app
+            .clone()
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert!(
+            response
+                .headers()
+                .contains_key(header::CONTENT_SECURITY_POLICY)
+        );
+        let html = String::from_utf8(
+            response
+                .into_body()
+                .collect()
+                .await
+                .unwrap()
+                .to_bytes()
+                .to_vec(),
+        )
+        .unwrap();
+        assert!(html.contains("<h1"), "{path}");
+        assert!(html.contains("rel=\"canonical\""), "{path}");
+        assert!(!html.contains("TODO"), "{path}");
+        for destination in html
+            .split("href=\"")
+            .skip(1)
+            .filter_map(|part| part.split('"').next())
+        {
+            if destination.starts_with('/') {
+                let target = destination.split('#').next().unwrap();
+                let response = app
+                    .clone()
+                    .oneshot(Request::builder().uri(target).body(Body::empty()).unwrap())
+                    .await
+                    .unwrap();
+                assert_eq!(response.status(), StatusCode::OK, "{path} -> {target}");
+            }
+        }
+    }
+    for (path, mime) in [
+        ("/static/images/crowns-adrift.webp", "image/webp"),
+        ("/static/images/cold-orbit.webp", "image/webp"),
+        ("/static/images/spice-cad.webp", "image/webp"),
+        ("/static/images/crowns-adrift-preview.webp", "image/webp"),
+        ("/static/images/cold-orbit-preview.webp", "image/webp"),
+        ("/static/images/spice-cad-preview.webp", "image/webp"),
+        ("/static/images.js", "text/javascript; charset=utf-8"),
+        (
+            "/static/vendor/datastar-1.0.4.js",
+            "text/javascript; charset=utf-8",
+        ),
+        ("/sitemap.xml", "application/xml"),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], mime);
+    }
+    for path in [
+        "/missing",
+        "/games/no-such-game",
+        "/static/../Cargo.toml",
+        "/static/missing",
+    ] {
+        let response = app
+            .clone()
+            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_FOUND, "{path}");
+    }
+}
+
+#[test]
+fn only_known_packages_and_bounded_versions_are_accepted() {
+    for version in ["", "<script>", "1.0\ninjected", "1.0.0\"", &"1".repeat(33)] {
+        assert!(
+            !Release {
+                package: "ClearMinimap".into(),
+                version: version.into()
+            }
+            .valid()
+        );
+    }
+    assert!(
+        !Release {
+            package: "OtherOwner".into(),
+            version: "1.0.0".into()
+        }
+        .valid()
+    );
+    assert!(
+        Release {
+            package: "ClearMinimap".into(),
+            version: "0.2.0".into()
+        }
+        .valid()
+    );
+}
+
+#[tokio::test]
+async fn streams_are_bounded_release_capacity_and_close_on_shutdown() {
+    let state = test_state();
+    let app = router(state.clone());
+    let first = app
+        .clone()
+        .oneshot(Request::get("/events").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    let second = app
+        .clone()
+        .oneshot(Request::get("/events").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(first.status(), StatusCode::OK);
+    assert_eq!(second.status(), StatusCode::OK);
+    let third = app
+        .clone()
+        .oneshot(Request::get("/events").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(third.status(), StatusCode::SERVICE_UNAVAILABLE);
+    drop(second);
+    assert_eq!(state.streams.available_permits(), 1);
+    state.stopping.cancel();
+    tokio::time::timeout(Duration::from_secs(1), first.into_body().collect())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(state.streams.available_permits(), 2);
+}
+
+struct TestNats(Child);
+impl Drop for TestNats {
+    fn drop(&mut self) {
+        self.0.kill().expect("stop test NATS");
+        self.0.wait().expect("reap test NATS");
+    }
+}
+
+#[tokio::test]
+async fn nats_release_reaches_an_existing_datastar_stream() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    drop(listener);
+    let mut server = TestNats(
+        Command::new("nats-server")
+            .args(["--addr", "127.0.0.1", "--port", &port.to_string()])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .expect("nats-server is required: run tests in nix develop"),
+    );
+    let mut client = None;
+    for _ in 0..100 {
+        if let Ok(connection) = async_nats::connect(format!("nats://127.0.0.1:{port}")).await {
+            client = Some(connection);
+            break;
+        }
+        assert!(
+            server.0.try_wait().unwrap().is_none(),
+            "NATS terminated early"
+        );
+        tokio::time::sleep(Duration::from_millis(20)).await;
+    }
+    let client = client.expect("NATS became ready");
+    let state = test_state();
+    let subscriber = client.subscribe(RELEASE_SUBJECT).await.unwrap();
+    client.flush().await.unwrap();
+    let receiver = tokio::spawn(receive_releases(subscriber, state.releases.clone()));
+    let response = router(state.clone())
+        .oneshot(Request::get("/events").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(
+        response.headers()[header::CONTENT_TYPE],
+        "text/event-stream"
+    );
+    let mut stream = response.into_body().into_data_stream();
+    let initial = stream.next().await.unwrap().unwrap();
+    let initial = std::str::from_utf8(&initial).unwrap();
+    assert!(initial.contains("event: datastar-patch-elements"));
+    assert!(initial.contains("data: elements <div id=\"mod_catalog\""));
+    assert!(!initial.contains("data: data:"));
+    client
+        .publish(
+            RELEASE_SUBJECT,
+            r#"{"package":"ClearMinimap","version":"9.8.7"}"#.into(),
+        )
+        .await
+        .unwrap();
+    client.flush().await.unwrap();
+    let update = tokio::time::timeout(Duration::from_secs(2), stream.next())
+        .await
+        .unwrap()
+        .unwrap()
+        .unwrap();
+    assert!(std::str::from_utf8(&update).unwrap().contains("v9.8.7"));
+    let mut changes = state.releases.subscribe();
+    changes.borrow_and_update();
+    for payload in [
+        r#"{"package":"ClearMinimap","version":"<script>"}"#,
+        r#"{"package":"Unknown","version":"1.0"}"#,
+        "not json",
+    ] {
+        client
+            .publish(RELEASE_SUBJECT, payload.into())
+            .await
+            .unwrap();
+    }
+    client.flush().await.unwrap();
+    assert!(
+        tokio::time::timeout(Duration::from_millis(100), changes.changed())
+            .await
+            .is_err()
+    );
+    assert_eq!(state.releases.borrow().len(), 1);
+    state.stopping.cancel();
+    receiver.abort();
+}

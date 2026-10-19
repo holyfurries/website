@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="theme-color" content="oklch(95.4987% 0.01238 91.519)">
+		<title>{% block title %}Holy Furries Studio | Games, mods &amp; tools{% endblock %}</title>
+		<meta name="description" content="{% block description %}Holy Furries Studio makes games, Schedule I mods, and software tools. Current projects include Crowns Adrift, Cold Orbit, and Spice CAD.{% endblock %}">
+		<link rel="canonical" href="https://holyfurries.com/{% block canonical %}{% endblock %}">
+		<meta property="og:title" content="{% block social_title %}Holy Furries Studio{% endblock %}">
+		<meta property="og:description" content="Independent games, Schedule I mods, and software tools.">
+		<meta property="og:type" content="website">
+		<meta property="og:image" content="https://holyfurries.com/static/images/crowns-adrift.webp">
+		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
+		<link rel="stylesheet" href="/static/site.css?v=9">
+		<script type="module" src="/static/images.js?v=1"></script>
+		<script type="module" src="/static/vendor/datastar-1.0.4.js"></script>
+	</head>
+	<body>
+		<a class="skip" href="#main">Skip to content</a>
+		<header class="site_header wrap">
+			<a class="brand" href="/" aria-label="Holy Furries Studio home"><img src="/static/mark.svg" width="48" height="48" alt=""><span>holy furries<span class="brand_suffix">STUDIO</span></span></a>
+			<nav aria-label="Main navigation"><a href="/#games">Games</a><a href="/#mods">Mods</a><a href="/#tools">Tools</a><a class="nav_studio" href="/#studio"><span class="link_label">The studio</span>{% include "arrow.html" %}</a></nav>
+		</header>
+		{% block content %}{% endblock %}
+		<footer class="wrap site_footer"><a class="brand" href="/">holy furries<span class="footer_dot">STUDIO</span></a><p>Games, mods, and software tools.</p><a class="text_link" href="https://github.com/holyfurries"><span class="link_label">Find us on GitHub</span>{% include "arrow.html" %}</a><span class="copyright">© 2026 Holy Furries Studio</span></footer>
+	</body>
+</html>

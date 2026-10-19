@@ -1,0 +1,5 @@
+<div id="mod_catalog" class="mod_list">
+	{% for item in mods %}
+	<article class="mod_row" id="mod_{{ item.package }}"><span class="mod_symbol" aria-hidden="true">{{ item.symbol }}</span><div class="mod_copy"><h3><a href="https://thunderstore.io/c/schedule-i/p/holyfurries/{{ item.package }}/">{{ item.name }}</a>{% for release in releases %}{% if release.package == item.package %}<span class="version">v{{ release.version }}</span>{% endif %}{% endfor %}</h3><p>{{ item.description }}</p></div><div class="mod_links"><a class="mod_install" href="https://thunderstore.io/c/schedule-i/p/holyfurries/{{ item.package }}/" aria-label="Get {{ item.name }} on Thunderstore"><span class="link_label">Get mod</span>{% include "arrow.html" %}</a><a class="mod_source" href="https://github.com/holyfurries/{{ item.repository }}" aria-label="Source code for {{ item.name }}">Source</a></div></article>
+	{% endfor %}
+</div>

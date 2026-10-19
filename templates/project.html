@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ name }} | Holy Furries Studio{% endblock %}
+{% block social_title %}{{ name }} | Holy Furries Studio{% endblock %}
+{% block description %}{{ description }}{% endblock %}
+{% block canonical %}{{ path }}{% endblock %}
+{% block content %}
+<main id="main" class="wrap project_page">
+	<a class="text_link" href="/">← <span class="link_label">Back to the studio</span></a>
+	<p class="eyebrow project_category">{{ category }}</p><h1>{{ name }}<span class="red">.</span></h1>
+	<div class="project_intro"><h2>{{ tagline }}</h2><p>{{ description }}</p></div>
+	<figure class="project_image"><div class="image_frame" data-image="{{ image }}"><img src="/static/images/{{ image }}" alt="{{ image_description }}" width="{{ image_width }}" height="{{ image_height }}" decoding="async" fetchpriority="high"></div><figcaption>{{ image_description }}. Development imagery; subject to change.</figcaption></figure>
+	<div class="project_features">{% for (title, text) in features %}<section><p class="eyebrow">0{{ loop.index }}</p><h2>{{ title }}</h2><p>{{ text }}</p></section>{% endfor %}</div>
+	<div class="development_note"><span class="status_dot"></span><div><h2>In development</h2><p>{{ name }} is in active development. There’s no public download available here yet.</p></div><a class="text_link" href="/#games"><span class="link_label">All projects</span>{% include "arrow.html" %}</a></div>
+</main>
+{% endblock %}
