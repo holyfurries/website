@@ -654,6 +654,9 @@
         margin-top: var(--space-2xs);
         max-width: 66ch;
     }
+    .mod_copy .mod_downloads {
+        font-size: var(--type-fine);
+    }
     .mod_links {
         display: flex;
         align-items: center;

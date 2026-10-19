@@ -279,7 +279,7 @@ async fn receive_releases(
     releases: watch::Sender<Vec<Release>>,
 ) {
     while let Some(message) = subscriber.next().await {
-        if message.payload.len() > 1024 {
+        if message.payload.len() > 2048 {
             continue;
         }
         let Ok(release) = serde_json::from_slice::<Release>(&message.payload) else {
@@ -308,7 +308,11 @@ async fn receive_releases(
 
 async fn refresh_releases(nats: async_nats::Client) {
     let client = match reqwest::Client::builder()
-        .user_agent("HolyFurries/0.1 (+https://holyfurries.com)")
+        .user_agent(concat!(
+            "HolyFurries/",
+            env!("CARGO_PKG_VERSION"),
+            " (+https://holyfurries.com)"
+        ))
         .redirect(reqwest::redirect::Policy::none())
         .build()
     {

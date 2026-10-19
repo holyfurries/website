@@ -5,7 +5,10 @@ software tools.
 
 Rust, Axum, and Askama serve HTML with embedded templates and assets. Datastar
 updates the mod catalog over SSE, and NATS carries release metadata from
-Thunderstore. Pages and install links work without browser JavaScript.
+Thunderstore. Versions, descriptions, and downloads for each latest release
+refresh every 30 minutes. Failed requests retain the current metadata; written
+descriptions remain the fallback before the first successful fetch. Pages and
+install links work without browser JavaScript.
 
 ## Run
 
@@ -41,11 +44,21 @@ nix develop --command cargo fmt --check
 nix develop --command cargo test --locked
 nix develop --command cargo clippy --locked --all-targets -- -D warnings
 nix build
+nix build .#checks.x86_64-linux.browser
 ```
 
 The packaged executable is `./result/bin/holyfurries`. Tests start their own
 local NATS server and cover routes, assets, release validation, and SSE updates
 and shutdown.
+
+The browser check runs Chromium and Firefox with Nix-pinned drivers. It checks
+navigation, constrained layouts, enlarged text, image loading, reduced motion,
+and live catalog updates. CI and tagged releases run it through
+`nix flake check`. Tests use local NATS messages rather than external API
+responses.
+
+`Cargo.toml` is the version source for the Nix package and catalog user agent.
+`Cargo.lock` records the generated package metadata.
 
 Formatting uses rustfmt, nixfmt, Biome for JavaScript and CSS, SuperHTML for
 HTML, Taplo for TOML, mdformat with its GFM plugin for Markdown, and OpenTofu

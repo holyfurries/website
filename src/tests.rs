@@ -105,7 +105,9 @@ fn only_known_packages_and_bounded_versions_are_accepted() {
         assert!(
             !Release {
                 package: "ClearMinimap".into(),
-                version: version.into()
+                version: version.into(),
+                description: "A minimap.".into(),
+                downloads: 0
             }
             .valid()
         );
@@ -113,17 +115,48 @@ fn only_known_packages_and_bounded_versions_are_accepted() {
     assert!(
         !Release {
             package: "OtherOwner".into(),
-            version: "1.0.0".into()
+            version: "1.0.0".into(),
+            description: "A minimap.".into(),
+            downloads: 0
         }
         .valid()
     );
     assert!(
         Release {
             package: "ClearMinimap".into(),
-            version: "0.2.0".into()
+            version: "0.2.0".into(),
+            description: "A minimap.".into(),
+            downloads: 0
         }
         .valid()
     );
+}
+
+#[test]
+fn fetched_descriptions_are_escaped_and_missing_metadata_keeps_the_written_copy() {
+    let fallback = Mods {
+        mods: &MODS,
+        releases: &[],
+    }
+    .render()
+    .unwrap();
+    assert!(fallback.contains(MODS[0].description));
+    assert!(!fallback.contains("mod_downloads"));
+    let releases = [Release {
+        package: "ClearMinimap".into(),
+        version: "0.2.1".into(),
+        description: "<img src=x onerror=alert(1)>".into(),
+        downloads: 42,
+    }];
+    let html = Mods {
+        mods: &MODS,
+        releases: &releases,
+    }
+    .render()
+    .unwrap();
+    assert!(!html.contains("<img src=x"));
+    assert!(html.contains("42 downloads for this version"));
+    assert!(html.contains("v0.2.1"));
 }
 
 #[tokio::test]
@@ -213,7 +246,7 @@ async fn nats_release_reaches_an_existing_datastar_stream() {
     client
         .publish(
             RELEASE_SUBJECT,
-            r#"{"package":"ClearMinimap","version":"9.8.7"}"#.into(),
+            r#"{"package":"ClearMinimap","version":"9.8.7","description":"Updated minimap.","downloads":42}"#.into(),
         )
         .await
         .unwrap();
@@ -223,7 +256,10 @@ async fn nats_release_reaches_an_existing_datastar_stream() {
         .unwrap()
         .unwrap()
         .unwrap();
-    assert!(std::str::from_utf8(&update).unwrap().contains("v9.8.7"));
+    let update = std::str::from_utf8(&update).unwrap();
+    assert!(update.contains("v9.8.7"));
+    assert!(update.contains("Updated minimap."));
+    assert!(update.contains("42 downloads for this version"));
     let mut changes = state.releases.subscribe();
     changes.borrow_and_update();
     for payload in [

@@ -47,11 +47,21 @@ pub struct Mod {
     pub repository: &'static str,
 }
 
+impl Mod {
+    pub fn release<'a>(&self, releases: &'a [Release]) -> Option<&'a Release> {
+        releases
+            .iter()
+            .find(|release| release.package == self.package)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Release {
     pub package: String,
     pub version: String,
+    pub description: String,
+    pub downloads: u64,
 }
 
 impl Release {
@@ -63,6 +73,18 @@ impl Release {
             return false;
         }
         if self.version.len() > 32 {
+            return false;
+        }
+        if self.description.is_empty() {
+            return false;
+        }
+        if self.description.len() > 512 {
+            return false;
+        }
+        if self.description.chars().any(char::is_control) {
+            return false;
+        }
+        if self.description.contains('\u{2014}') {
             return false;
         }
         self.version
@@ -82,6 +104,8 @@ struct Package {
 struct Version {
     version_number: String,
     is_active: bool,
+    description: String,
+    downloads: u64,
 }
 
 pub async fn fetch_release(
@@ -103,7 +127,13 @@ pub async fn fetch_release(
         }
         body.extend_from_slice(&chunk);
     }
-    let result: Package = serde_json::from_slice(&body)?;
+    parse_release(package, &body)
+}
+
+fn parse_release(package: &str, body: &[u8]) -> Result<Release, Box<dyn Error + Send + Sync>> {
+    assert!(body.len() <= 65_536);
+    assert!(MODS.iter().any(|item| item.package == package));
+    let result: Package = serde_json::from_slice(body)?;
     if result.namespace != "holyfurries" {
         return Err("Unexpected package owner".into());
     }
@@ -116,10 +146,40 @@ pub async fn fetch_release(
     let release = Release {
         package: result.name,
         version: result.latest.version_number,
+        description: result.latest.description.trim().replace('\u{2014}', " - "),
+        downloads: result.latest.downloads,
     };
     if !release.valid() {
         return Err("Invalid release metadata".into());
     }
     assert!(release.version.len() <= 32);
     Ok(release)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn thunderstore_metadata_is_validated_before_it_replaces_the_catalog() {
+        let mut package = json!({"namespace":"holyfurries", "name":"ClearMinimap", "latest":{
+            "version_number":"0.2.1", "is_active":true,
+            "description":" A minimap\u{2014}with markers. ", "downloads":42
+        }});
+        let release =
+            parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).unwrap();
+        assert_eq!(release.description, "A minimap - with markers.");
+        assert_eq!(release.downloads, 42);
+        package["latest"]["is_active"] = json!(false);
+        assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+        package["latest"]["is_active"] = json!(true);
+        package["namespace"] = json!("someone-else");
+        assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+        package["namespace"] = json!("holyfurries");
+        for description in [String::new(), "x".repeat(513), "line\nbreak".into()] {
+            package["latest"]["description"] = json!(description);
+            assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+        }
+    }
 }

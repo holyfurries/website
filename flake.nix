@@ -39,7 +39,12 @@
         in
         {
           packages.default = package;
-          checks.service = package;
+          checks = {
+            service = package;
+          }
+          // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
+            browser = package.browserCheck;
+          };
           devshells.default = {
             packages = with pkgs; [
               rust_toolchain
