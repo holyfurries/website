@@ -12,6 +12,12 @@ their original licenses.
 
 ## Sources
 
+The shared product splash and canonical studio branding live in
+[holyfurries/brand-assets](https://github.com/holyfurries/brand-assets). The
+website keeps local copies of the mark and favicon for serving its pages. The
+inline hero mark and its entrance animation follow the shared splash's artwork
+and timing.
+
 | Website asset                      | Source                                                                                |
 | ---------------------------------- | ------------------------------------------------------------------------------------- |
 | `static/images/crowns-adrift.webp` | `../tribute/crates/client/assets/menu/harbour.png`                                    |

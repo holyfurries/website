@@ -76,7 +76,9 @@ Colors use OKLCH. Typography, spacing, and gutters use
 adapt to available space without layout breakpoints. Images show small blurred
 previews while loading and fade in after decoding. Pages enter with a quick
 upward movement. Browsers with cross-document view transitions also animate
-internal page navigation. Reduced-motion mode disables both effects.
+internal page navigation. The homepage fox enters with the shared studio
+splash's halo bounce, glance, and blink. Reduced-motion mode disables these
+animations.
 
 ## Deployment
 

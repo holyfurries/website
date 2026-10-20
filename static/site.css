@@ -467,8 +467,10 @@
         max-width: min(100%, clamp(13.125rem, 9.375rem + 16.6667vw, 24.375rem));
         margin-inline-start: auto;
     }
-    .hero_emblem img {
+    .hero_mark {
+        display: block;
         width: 75%;
+        height: auto;
         transform: rotate(8deg);
     }
     .emblem_ring {
@@ -784,6 +786,97 @@
     }
 }
 @layer motion {
+    .hero_mark .fox {
+        transform-origin: 101px 126px;
+        animation: hero_appear 255ms linear both;
+    }
+    .hero_mark .face {
+        transform-origin: 101px 126px;
+        animation: hero_face 675ms linear both;
+    }
+    .hero_mark .halo {
+        transform-origin: 104px 27px;
+        animation: hero_halo 870ms linear both;
+    }
+    .hero_mark .eyes {
+        transform-origin: 101px 130px;
+        animation: hero_glance 1065ms ease-in-out both;
+    }
+    @keyframes hero_appear {
+        0% {
+            transform: translateY(12px) scale(0);
+            animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        64.706% {
+            transform: translateY(0) scale(1.04);
+        }
+        100% {
+            transform: none;
+        }
+    }
+    @keyframes hero_face {
+        0%,
+        64.444% {
+            transform: none;
+        }
+        73.333% {
+            transform: translateY(5px) scale(1.07, 0.91);
+        }
+        84.444% {
+            transform: scale(0.98, 1.04);
+            animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        100% {
+            transform: none;
+        }
+    }
+    @keyframes hero_halo {
+        0%,
+        20.69% {
+            transform: translateY(-105px) rotate(16deg);
+            visibility: hidden;
+        }
+        22.414% {
+            transform: translateY(-105px) rotate(16deg);
+            visibility: visible;
+            animation-timing-function: cubic-bezier(0.55, 0, 0.95, 0.6);
+        }
+        55.172% {
+            transform: translateY(5px) rotate(9deg);
+            animation-timing-function: cubic-bezier(0.15, 0.6, 0.3, 1);
+        }
+        70.69% {
+            transform: translateY(-12px) rotate(-9deg);
+            animation-timing-function: ease-in;
+        }
+        84.483% {
+            transform: translateY(2px) rotate(4deg);
+            animation-timing-function: ease-out;
+        }
+        100% {
+            transform: none;
+        }
+    }
+    @keyframes hero_glance {
+        0%,
+        38.028% {
+            transform: none;
+        }
+        53.521%,
+        74.648% {
+            transform: translateY(-4px);
+        }
+        85.915% {
+            transform: none;
+        }
+        92.958% {
+            transform: scaleY(0.12);
+        }
+        100% {
+            transform: none;
+        }
+    }
+
     main {
         translate: 0 0;
         transition: translate 0.14s ease-out;

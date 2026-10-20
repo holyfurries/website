@@ -109,6 +109,28 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
             "#, json!([])).await;
             assert_eq!(motion["reduced"], reduced, "{engine}: {motion}");
             assert_eq!(motion["opacity"], "1");
+            let hero = script(&client, &session, r#"
+                const mark = document.querySelector('.hero_mark');
+                const animations = mark.getAnimations({subtree: true});
+                return {durations: animations.map(animation => animation.effect.getTiming().duration).sort((a, b) => a - b),
+                    halo: getComputedStyle(mark.querySelector('.halo')).visibility,
+                    title: getComputedStyle(document.querySelector('#hero_title')).opacity};
+            "#, json!([])).await;
+            assert_eq!(hero["title"], "1", "{engine}: hero copy stays visible");
+            if reduced {
+                assert_eq!(
+                    hero["durations"],
+                    json!([]),
+                    "{engine}: reduced-motion hero"
+                );
+                assert_eq!(hero["halo"], "visible");
+            } else {
+                assert_eq!(
+                    hero["durations"],
+                    json!([255, 675, 870, 1065]),
+                    "{engine}: hero timing"
+                );
+            }
             if reduced {
                 assert_eq!(motion["duration"], "0s");
             } else {
