@@ -1,7 +1,6 @@
 use super::*;
 use axum::{body::Body, http::Request};
 use http_body_util::BodyExt;
-use std::process::{Child, Command, Stdio};
 use tower::ServiceExt;
 
 fn test_state() -> AppState {
@@ -191,40 +190,9 @@ async fn streams_are_bounded_release_capacity_and_close_on_shutdown() {
     assert_eq!(state.streams.available_permits(), 2);
 }
 
-struct TestNats(Child);
-impl Drop for TestNats {
-    fn drop(&mut self) {
-        self.0.kill().expect("stop test NATS");
-        self.0.wait().expect("reap test NATS");
-    }
-}
-
 #[tokio::test]
 async fn nats_release_reaches_an_existing_datastar_stream() {
-    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
-    let port = listener.local_addr().unwrap().port();
-    drop(listener);
-    let mut server = TestNats(
-        Command::new("nats-server")
-            .args(["--addr", "127.0.0.1", "--port", &port.to_string()])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .expect("nats-server is required: run tests in nix develop"),
-    );
-    let mut client = None;
-    for _ in 0..100 {
-        if let Ok(connection) = async_nats::connect(format!("nats://127.0.0.1:{port}")).await {
-            client = Some(connection);
-            break;
-        }
-        assert!(
-            server.0.try_wait().unwrap().is_none(),
-            "NATS terminated early"
-        );
-        tokio::time::sleep(Duration::from_millis(20)).await;
-    }
-    let client = client.expect("NATS became ready");
+    let (mut server, client) = nats::Server::start(nats::PROGRAM).await.unwrap();
     let state = test_state();
     let subscriber = client.subscribe(RELEASE_SUBJECT).await.unwrap();
     client.flush().await.unwrap();
@@ -281,4 +249,5 @@ async fn nats_release_reaches_an_existing_datastar_stream() {
     assert_eq!(state.releases.borrow().len(), 1);
     state.stopping.cancel();
     receiver.abort();
+    server.stop().await.unwrap();
 }

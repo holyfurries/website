@@ -25,6 +25,7 @@ let
       ];
     };
     strictDeps = true;
+    NATS_SERVER = lib.getExe nats-server;
   };
   cargo_artifacts = crane_lib.buildDepsOnly common_args;
 in
@@ -32,7 +33,9 @@ crane_lib.buildPackage (
   common_args
   // {
     cargoArtifacts = cargo_artifacts;
-    nativeCheckInputs = [ nats-server ];
+    postInstall = ''
+      install -Dm644 ${nats-server.src}/LICENSE "$out/share/licenses/nats-server/LICENSE"
+    '';
     meta.mainProgram = "holyfurries";
     passthru.browserCheck = crane_lib.cargoTest (
       common_args
@@ -40,7 +43,6 @@ crane_lib.buildPackage (
         cargoArtifacts = cargo_artifacts;
         cargoTestExtraArgs = "--test browser -- --ignored";
         nativeCheckInputs = [
-          nats-server
           chromium
           chromedriver
           firefox

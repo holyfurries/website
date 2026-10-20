@@ -18,24 +18,22 @@ Enter the development shell in each terminal:
 nix develop
 ```
 
-Start NATS in one terminal:
-
-```console
-nats-server --addr 127.0.0.1 --port 4222
-```
-
-Run the website in another:
+Run the website:
 
 ```console
 cargo run --locked
 ```
 
-Open http://127.0.0.1:8080. `LISTEN_ADDRESS` and `NATS_URL` override the
-defaults. NATS must be available at startup. `/healthz` returns 503 if its
-connection goes down. The application needs no runtime asset directory.
+Open http://127.0.0.1:8080. `LISTEN_ADDRESS` overrides the HTTP address. The
+website starts its own NATS child on an automatically assigned loopback port,
+waits for it to become ready, and stops and reaps it on shutdown. If NATS exits,
+the website exits with an error so its service manager can restart both.
+`/healthz` checks the private NATS connection. The application needs no runtime
+asset directory or separate NATS service.
 
 The flake uses flake-parts, devshell, crane, and rust-overlay. The shell and
-package build share a pinned Rust toolchain.
+package build share a pinned Rust toolchain. The shell provides `nats-server`;
+the packaged website uses its bundled, pinned server binary directly.
 
 ## Development
 
@@ -97,7 +95,7 @@ Import its generic service module in the NixOS configuration:
 }
 ```
 
-The module runs the website and a private NATS service on loopback. Configure
+The module runs one website service, including its private NATS child. Configure
 public routing and TLS in the host configuration. The deployment-specific
 `nixosModules.atlas` export contains the existing site's tunnel routing.
 
@@ -124,6 +122,13 @@ The generic module defaults to the package pinned by the host flake. Enable
 `x86_64-linux`. The initial profile uses the pinned package; subsequent releases
 persist across reboots and NixOS rebuilds. Updating NixOS still updates the
 service module and updater executable.
+
+For hosts running the older separate NATS service, deploy the website release
+with the owned NATS child first. Then update the host's module to remove the
+older service dependency. This keeps the currently deployed website working
+through the transition. Rolling back across this change also requires restoring
+the previous host module so the older website has its separate NATS service
+available again.
 
 To update the host's website input and service configuration, replace `HOST`
 with the NixOS configuration name:
@@ -157,8 +162,8 @@ by Git.
 
 GitHub Actions checks builds and formatting on pushes to `main` and pull
 requests. The Release workflow builds an `x86_64-linux` archive for the server's
-architecture, then imports it on a fresh runner and starts the website with NATS
-to check its health and public routes.
+architecture, then imports it on a fresh runner and starts the website alone to
+check its owned NATS startup, health, and public routes.
 
 Running Release manually produces downloadable workflow artifacts. Pushing a tag
 matching the Cargo version, such as `v0.1.0`, also publishes the verified
@@ -166,7 +171,8 @@ archives and SHA-256 checksums to GitHub Releases.
 
 Each archive contains the application's complete Nix runtime closure, its store
 path, documentation, and license notices. It requires Nix on the matching Linux
-architecture and a running NATS service. For an x86-64 release:
+architecture. The archive includes the NATS server runtime. For an x86-64
+release:
 
 ```console
 sha256sum --check holyfurries-x86_64-linux.tar.gz.sha256

@@ -22,29 +22,16 @@ in
     autoUpdate.enable = lib.mkEnableOption "pulling verified GitHub releases";
   };
   config = lib.mkIf settings.enable {
-    services.nats = {
-      enable = true;
-      settings = {
-        host = "127.0.0.1";
-        port = 4222;
-        max_payload = 65536;
-      };
-    };
     systemd.services.holyfurries = {
       description = "Holy Furries Studio website";
       wantedBy = [ "multi-user.target" ];
       after = [
         "network.target"
-        "nats.service"
       ]
       ++ lib.optional settings.autoUpdate.enable "holyfurries-profile.service";
-      requires = [
-        "nats.service"
-      ]
-      ++ lib.optional settings.autoUpdate.enable "holyfurries-profile.service";
+      requires = lib.optional settings.autoUpdate.enable "holyfurries-profile.service";
       environment = {
         LISTEN_ADDRESS = "127.0.0.1:${toString settings.port}";
-        NATS_URL = "nats://127.0.0.1:4222";
       };
       serviceConfig = {
         ExecStart =
@@ -55,7 +42,8 @@ in
         DynamicUser = true;
         Restart = "on-failure";
         RestartSec = 3;
-        TimeoutStopSec = 15;
+        KillMode = "control-group";
+        TimeoutStopSec = 20;
         NoNewPrivileges = true;
         ProtectSystem = "strict";
         ProtectHome = true;

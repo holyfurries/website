@@ -5,8 +5,9 @@
 use reqwest::{Client, Method};
 use serde_json::{Value, json};
 use std::{
+    io::Read,
     net::TcpListener,
-    process::{Child, Command, Stdio},
+    process::{Child, Command},
     time::Duration,
 };
 
@@ -17,34 +18,9 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
         .timeout(Duration::from_secs(20))
         .build()
         .unwrap();
-    let nats_port = port();
-    let website_port = port();
-    let _nats = Process(
-        Command::new("nats-server")
-            .args(["--addr", "127.0.0.1", "--port", &nats_port.to_string()])
-            .stdout(Stdio::null())
-            .spawn()
-            .unwrap(),
-    );
-    let nats_url = format!("nats://127.0.0.1:{nats_port}");
-    let mut nats = None;
-    for _ in 0..50 {
-        if let Ok(connection) = async_nats::connect(&nats_url).await {
-            nats = Some(connection);
-            break;
-        }
-        tokio::time::sleep(Duration::from_millis(100)).await;
-    }
-    let nats = nats.expect("NATS became ready");
-    let _website = Process(
-        Command::new(env!("CARGO_BIN_EXE_holyfurries"))
-            .env("LISTEN_ADDRESS", format!("127.0.0.1:{website_port}"))
-            .env("NATS_URL", nats_url)
-            .spawn()
-            .unwrap(),
-    );
-    let website = format!("http://127.0.0.1:{website_port}");
-    ready(&client, &format!("{website}/healthz")).await;
+    let website_process = start_website(&client).await;
+    let website = &website_process.url;
+    let nats = &website_process.nats;
 
     for engine in ["chromium", "firefox"] {
         let driver_port = port();
@@ -248,6 +224,138 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
             request(&client, Method::DELETE, &session, json!({})).await;
             eprintln!("Browser: {engine}, reduced motion {reduced} passed");
         }
+    }
+}
+
+struct Website {
+    process: Process,
+    url: String,
+    nats: async_nats::Client,
+    nats_id: i32,
+}
+
+async fn start_website(client: &Client) -> Website {
+    let website_port = port();
+    let log = tempfile::NamedTempFile::new().unwrap();
+    let process = Process(
+        Command::new(env!("CARGO_BIN_EXE_holyfurries"))
+            .env("LISTEN_ADDRESS", format!("127.0.0.1:{website_port}"))
+            .stderr(log.reopen().unwrap())
+            .spawn()
+            .unwrap(),
+    );
+    let url = format!("http://127.0.0.1:{website_port}");
+    ready(client, &format!("{url}/healthz")).await;
+    let mut messages = String::new();
+    log.reopen()
+        .unwrap()
+        .take(65536)
+        .read_to_string(&mut messages)
+        .unwrap();
+    let endpoint = messages
+        .lines()
+        .find_map(|line| line.strip_prefix("NATS: "))
+        .expect("website reports its private NATS endpoint");
+    let mut fields = endpoint.split_whitespace();
+    let nats = async_nats::connect(fields.next().unwrap()).await.unwrap();
+    let nats_id: i32 = fields
+        .next()
+        .unwrap()
+        .strip_prefix("pid=")
+        .unwrap()
+        .parse()
+        .unwrap();
+    assert!(nats_id > 0);
+    assert!(process.0.id() != u32::try_from(nats_id).unwrap());
+    Website {
+        process,
+        url,
+        nats,
+        nats_id,
+    }
+}
+
+impl Drop for Website {
+    fn drop(&mut self) {
+        if self
+            .process
+            .0
+            .try_wait()
+            .expect("read website status")
+            .is_none()
+        {
+            let process_id = i32::try_from(self.process.0.id()).unwrap();
+            unsafe {
+                libc::kill(process_id, libc::SIGTERM);
+            }
+            for _ in 0..250 {
+                if self
+                    .process
+                    .0
+                    .try_wait()
+                    .expect("read website status")
+                    .is_some()
+                {
+                    return;
+                }
+                std::thread::sleep(Duration::from_millis(20));
+            }
+        }
+    }
+}
+
+#[tokio::test]
+#[ignore = "Run the Nix browser check for the packaged NATS server"]
+async fn website_owns_nats_startup_failure_and_shutdown() {
+    let client = Client::builder()
+        .timeout(Duration::from_secs(2))
+        .build()
+        .unwrap();
+    for stop_website in [true, false] {
+        let mut website = start_website(&client).await;
+        let mut stream = client
+            .get(format!("{}/events", website.url))
+            .send()
+            .await
+            .unwrap();
+        assert!(stream.chunk().await.unwrap().is_some());
+        let process_id = if stop_website {
+            i32::try_from(website.process.0.id()).unwrap()
+        } else {
+            website.nats_id
+        };
+        let signal = if stop_website {
+            libc::SIGTERM
+        } else {
+            libc::SIGKILL
+        };
+        assert_eq!(unsafe { libc::kill(process_id, signal) }, 0);
+        let mut status = None;
+        for _ in 0..200 {
+            if let Some(exited) = website.process.0.try_wait().unwrap() {
+                status = Some(exited);
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(25)).await;
+        }
+        assert_eq!(
+            status.expect("website exits within five seconds").success(),
+            stop_website
+        );
+        assert_eq!(
+            unsafe { libc::kill(website.nats_id, 0) },
+            -1,
+            "NATS child must be reaped"
+        );
+        assert_eq!(
+            std::io::Error::last_os_error().raw_os_error(),
+            Some(libc::ESRCH)
+        );
+        assert!(
+            tokio::time::timeout(Duration::from_secs(2), stream.chunk())
+                .await
+                .is_ok()
+        );
     }
 }
 

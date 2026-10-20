@@ -14,13 +14,21 @@ use axum::{
     routing::get,
 };
 use futures::{Stream, StreamExt};
-use std::{convert::Infallible, error::Error, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    convert::Infallible,
+    error::Error,
+    future::{Future, IntoFuture},
+    net::SocketAddr,
+    sync::Arc,
+    time::Duration,
+};
 use tokio::sync::{Semaphore, watch};
 use tokio_stream::wrappers::WatchStream;
 use tokio_util::sync::CancellationToken;
 use tower_http::{compression::CompressionLayer, set_header::SetResponseHeaderLayer};
 
 mod catalog;
+mod nats;
 use catalog::{MODS, Release};
 
 type ServiceError = Box<dyn Error + Send + Sync>;
@@ -28,17 +36,30 @@ const RELEASE_SUBJECT: &str = "holyfurries.catalog.release";
 
 #[tokio::main(worker_threads = 2)]
 async fn main() -> Result<(), ServiceError> {
+    let shutdown = shutdown()?;
     let address: SocketAddr = std::env::var("LISTEN_ADDRESS")
         .unwrap_or_else(|_| "127.0.0.1:8080".into())
         .parse()?;
-    let nats_url = std::env::var("NATS_URL").unwrap_or_else(|_| "nats://127.0.0.1:4222".into());
-    let nats = async_nats::ConnectOptions::new()
-        .client_capacity(64)
-        .subscription_capacity(64)
-        .connect(nats_url)
-        .await?;
-    let subscriber = nats.subscribe(RELEASE_SUBJECT).await?;
-    nats.flush().await?;
+    let listener = tokio::net::TcpListener::bind(address).await?;
+    let (mut server, nats) = nats::Server::start(nats::PROGRAM).await?;
+    let result = serve(listener, &mut server, nats, shutdown).await;
+    let cleanup = server.stop().await;
+    if let Err(error) = &cleanup {
+        eprintln!("NATS cleanup: {error}");
+    }
+    result?;
+    cleanup
+}
+
+async fn serve(
+    listener: tokio::net::TcpListener,
+    server: &mut nats::Server,
+    nats: async_nats::Client,
+    shutdown: impl Future<Output = ()>,
+) -> Result<(), ServiceError> {
+    let subscriber =
+        tokio::time::timeout(Duration::from_secs(2), nats.subscribe(RELEASE_SUBJECT)).await??;
+    tokio::time::timeout(Duration::from_secs(2), nats.flush()).await??;
     let (releases, _) = watch::channel(Vec::new());
     let stopping = CancellationToken::new();
     let state = AppState {
@@ -49,21 +70,35 @@ async fn main() -> Result<(), ServiceError> {
     };
     let receiver = tokio::spawn(receive_releases(subscriber, releases));
     let worker = tokio::spawn(refresh_releases(nats.clone()));
-    let listener = tokio::net::TcpListener::bind(address).await?;
-    eprintln!("Web: http://{address}");
-    let result = axum::serve(listener, router(state))
-        .with_graceful_shutdown(async move {
-            shutdown().await;
+    eprintln!("Web: http://{}", listener.local_addr()?);
+    let serving = axum::serve(listener, router(state))
+        .with_graceful_shutdown(stopping.clone().cancelled_owned())
+        .into_future();
+    tokio::pin!(serving);
+    let result: Result<(), ServiceError> = tokio::select! {
+        biased;
+        _ = shutdown => {
             stopping.cancel();
-        })
-        .await;
+            match tokio::time::timeout(Duration::from_secs(10), &mut serving).await {
+                Ok(result) => result.map_err(Into::into),
+                Err(error) => Err(error.into()),
+            }
+        }
+        status = server.wait() => match status {
+            Ok(status) => Err(format!("Private NATS server exited: {status}").into()),
+            Err(error) => Err(error),
+        },
+        result = &mut serving => result.map_err(Into::into),
+    };
+    stopping.cancel();
     worker.abort();
     receiver.abort();
-    if let Err(error) = nats.drain().await {
-        eprintln!("NATS: {error}");
+    match tokio::time::timeout(Duration::from_secs(2), nats.drain()).await {
+        Ok(Ok(())) => {}
+        Ok(Err(error)) => eprintln!("NATS drain: {error}"),
+        Err(error) => eprintln!("NATS drain: {error}"),
     }
-    result?;
-    Ok(())
+    result
 }
 
 #[derive(Clone)]
@@ -342,25 +377,19 @@ async fn refresh_releases(nats: async_nats::Client) {
     }
 }
 
-async fn shutdown() {
+fn shutdown() -> std::io::Result<impl Future<Output = ()>> {
     #[cfg(unix)]
-    {
-        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
-            Ok(mut terminate) => {
-                tokio::select! { result = tokio::signal::ctrl_c() => { if let Err(error) = result { eprintln!("Signal: {error}"); } }, _ = terminate.recv() => {} }
-            }
-            Err(error) => {
-                eprintln!("Signal: {error}");
-                if let Err(error) = tokio::signal::ctrl_c().await {
-                    eprintln!("Signal: {error}");
-                }
-            }
+    let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
+    #[cfg(unix)]
+    let mut interrupt = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())?;
+    Ok(async move {
+        #[cfg(unix)]
+        tokio::select! { _ = terminate.recv() => {}, _ = interrupt.recv() => {} }
+        #[cfg(not(unix))]
+        if let Err(error) = tokio::signal::ctrl_c().await {
+            eprintln!("Signal: {error}");
         }
-    }
-    #[cfg(not(unix))]
-    if let Err(error) = tokio::signal::ctrl_c().await {
-        eprintln!("Signal: {error}");
-    }
+    })
 }
 
 async fn asset(Path(path): Path<String>) -> Response {

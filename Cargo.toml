@@ -1,6 +1,6 @@
 [package]
 name = "holyfurries"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 default-run = "holyfurries"
 rust-version = "1.88"
@@ -18,10 +18,12 @@ reqwest = { version = "0.12", default-features = false, features = [
 ] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tempfile = "3"
 tokio = { version = "1", features = [
   "macros",
   "rt-multi-thread",
   "net",
+  "process",
   "signal",
   "sync",
   "time",
@@ -33,6 +35,7 @@ tower-http = { version = "0.6", features = ["compression-gzip", "set-header"] }
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
+libc = "0.2"
 
 [profile.release]
 lto = "thin"
