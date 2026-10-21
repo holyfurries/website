@@ -479,8 +479,8 @@
     [data-image="crowns-adrift-gameplay.webp"] {
         --image-preview: url("/static/images/crowns-adrift-gameplay-preview.webp");
     }
-    [data-image="cold-orbit.webp"] {
-        --image-preview: url("/static/images/cold-orbit-preview.webp");
+    [data-image="cold-orbit-flight.webp"] {
+        --image-preview: url("/static/images/cold-orbit-flight-preview.webp");
     }
     [data-image="spice-cad-workspace.webp"] {
         --image-preview: url("/static/images/spice-cad-workspace-preview.webp");

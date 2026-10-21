@@ -210,12 +210,12 @@ async fn game(Path(slug): Path<String>) -> Response {
         "cold-orbit" => Project {
             path: "games/cold-orbit",
             name: "Cold Orbit",
-            category: "Ship-building sandbox · Working title · In development",
+            category: "Ship-building sandbox · In development",
             tagline: "Build and fly your own ship.",
             description: "A top-down ship-building sandbox. Assemble a ship in the editor, launch it into space, and manage its systems and crew.",
-            image: "cold-orbit.webp",
+            image: "cold-orbit-flight.webp",
             image_width: 1413,
-            image_height: 1068,
+            image_height: 1004,
             image_description: "Cold Orbit development screenshot: a custom white spacecraft under thrust",
             features: [
                 (
@@ -420,9 +420,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/crowns-adrift-gameplay.webp"),
         ),
-        "images/cold-orbit.webp" => (
+        "images/cold-orbit-flight.webp" => (
             "image/webp",
-            include_bytes!("../static/images/cold-orbit.webp"),
+            include_bytes!("../static/images/cold-orbit-flight.webp"),
         ),
         "images/spice-cad-workspace.webp" => (
             "image/webp",
@@ -432,9 +432,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/crowns-adrift-gameplay-preview.webp"),
         ),
-        "images/cold-orbit-preview.webp" => (
+        "images/cold-orbit-flight-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/cold-orbit-preview.webp"),
+            include_bytes!("../static/images/cold-orbit-flight-preview.webp"),
         ),
         "images/spice-cad-workspace-preview.webp" => (
             "image/webp",

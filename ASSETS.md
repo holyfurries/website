@@ -21,7 +21,7 @@ and timing.
 | Website asset                               | Source                                                                                |
 | ------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `static/images/crowns-adrift-gameplay.webp` | `../tribute/docs/audits/2026-10-20/fixed/placement.png`                               |
-| `static/images/cold-orbit.webp`             | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
+| `static/images/cold-orbit-flight.webp`      | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
 | `static/images/spice-cad-workspace.webp`    | `../spice-rack/docs/images/workspace.png`                                             |
 | `static/mark.svg`                           | Original geometric fox and halo drawn for this website                                |
 | `static/favicon.svg`                        | Simplified fox and halo with heavier features and a solid background for browser tabs |
@@ -31,6 +31,10 @@ WebP conversions use `cwebp` at quality 86 for games and 90 for the CAD
 interface. Originals remain in their source projects. The Crowns Adrift image is
 a gameplay capture from the project's interface audit. These are development
 images and are identified as such on the project pages.
+
+The Cold Orbit capture has its top 64-pixel debug strip cropped before WebP
+conversion. This removes the FPS/frame-time overlay while retaining the ship and
+gameplay controls.
 
 `studio-social.png` is a 1200 × 630 browser-rendered export of
 `studio-social.svg`, with an opaque cream background for shared-link previews.
