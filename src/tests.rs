@@ -50,6 +50,10 @@ async fn public_pages_links_metadata_and_assets() {
             "{path}"
         );
         assert!(!html.contains("TODO"), "{path}");
+        if path == "/tools/spice-cad" {
+            assert!(html.contains("href=\"https://github.com/holyfurries/spice-cad\""));
+            assert!(!html.contains("no public download"));
+        }
         for destination in html
             .split("href=\"")
             .skip(1)

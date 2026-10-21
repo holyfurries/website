@@ -177,6 +177,7 @@ struct Project {
     image_width: u32,
     image_height: u32,
     image_description: &'static str,
+    repository: Option<&'static str>,
     features: [(&'static str, &'static str); 3],
 }
 
@@ -192,6 +193,7 @@ async fn game(Path(slug): Path<String>) -> Response {
             image_width: 1280,
             image_height: 720,
             image_description: "Crowns Adrift gameplay showing a Bronze Age city board and building cards",
+            repository: None,
             features: [
                 (
                     "City layout",
@@ -217,6 +219,7 @@ async fn game(Path(slug): Path<String>) -> Response {
             image_width: 1413,
             image_height: 1004,
             image_description: "Cold Orbit development screenshot: a custom white spacecraft under thrust",
+            repository: None,
             features: [
                 (
                     "Shipbuilding",
@@ -250,6 +253,7 @@ async fn tool() -> Response {
         description: "Write models in Luau and inspect the resulting geometry in a native Rust application. The project began as a parametric spice-rack model.",
         image: "spice-cad-workspace.webp", image_width: 1700, image_height: 1050,
         image_description: "Spice CAD showing Luau code, a mounting bracket model, and editable parameters",
+        repository: Some("https://github.com/holyfurries/spice-cad"),
         features: [("Luau editor", "An integrated Luau editor keeps your construction logic alongside the resulting model."), ("3D viewport", "Orbit the viewport, select geometry, and inspect dimensions in the native desktop interface."), ("Parametric parts", "The original spice-rack model uses dimensions for the cabinet, jars, and printable parts.")],
     }.render())
 }
