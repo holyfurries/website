@@ -662,6 +662,10 @@
         color: var(--forest-symbol);
         font-size: var(--type-card);
     }
+    .mod_symbol svg {
+        width: 70%;
+        height: 70%;
+    }
     .mod_copy {
         flex: 1 1
             min(24rem, calc(100% - var(--mod-symbol-size) - var(--space-xs)));

@@ -5,14 +5,14 @@ pub const MODS: [Mod; 5] = [
     Mod {
         package: "ClearMinimap",
         name: "Clear Minimap",
-        symbol: "↗",
+        symbol: "map",
         description: "A square minimap showing teammates, properties, active deals, and objectives.",
         repository: "clear-minimap",
     },
     Mod {
         package: "CoordinatedPolice",
         name: "Coordinated Police",
-        symbol: "✳",
+        symbol: "badge",
         description: "Coordinated pursuits, searches, and police responses that scale with the severity of your offenses.",
         repository: "coordinated-police",
     },
