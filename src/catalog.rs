@@ -47,6 +47,15 @@ pub struct Mod {
     pub repository: &'static str,
 }
 
+pub fn downloads_total(releases: &[Release]) -> Option<u128> {
+    MODS.iter()
+        .map(|item| {
+            item.release(releases)
+                .map(|release| u128::from(release.downloads_total))
+        })
+        .sum()
+}
+
 impl Mod {
     pub fn release<'a>(&self, releases: &'a [Release]) -> Option<&'a Release> {
         releases

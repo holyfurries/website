@@ -295,6 +295,23 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                 })).unwrap().into()).await.unwrap();
                 nats.flush().await.unwrap();
                 wait(&client, &session, &format!("return document.querySelector('#mod_ClearMinimap').textContent.includes('v{version}') && document.querySelector('#mod_ClearMinimap').textContent.includes('Browser-tested minimap.') && document.querySelector('#mod_ClearMinimap').textContent.includes('42 downloads total')")).await;
+                for package in [
+                    "CoordinatedPolice",
+                    "CasinoLedger",
+                    "DeathNotices",
+                    "ModSettings",
+                ] {
+                    nats.publish("holyfurries.catalog.release", serde_json::to_vec(&json!({
+                        "package":package, "version":version, "description":"Browser-tested mod.", "downloads_total":42
+                    })).unwrap().into()).await.unwrap();
+                }
+                nats.flush().await.unwrap();
+                wait(&client, &session, "return document.querySelector('.mods_downloads_total')?.textContent === '210 total downloads across all 5 mods'").await;
+                nats.publish("holyfurries.catalog.release", serde_json::to_vec(&json!({
+                    "package":"ClearMinimap", "version":version, "description":"Browser-tested minimap.", "downloads_total":43
+                })).unwrap().into()).await.unwrap();
+                nats.flush().await.unwrap();
+                wait(&client, &session, "return document.querySelector('.mods_downloads_total')?.textContent === '211 total downloads across all 5 mods'").await;
             }
             request(&client, Method::DELETE, &session, json!({})).await;
             eprintln!("Browser: {engine}, reduced motion {reduced} passed");

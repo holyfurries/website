@@ -162,6 +162,38 @@ fn fetched_descriptions_are_escaped_and_missing_metadata_keeps_the_written_copy(
     assert!(html.contains("v0.2.1"));
 }
 
+#[test]
+fn combined_downloads_require_every_mod_and_sum_without_overflow() {
+    let mut releases: Vec<Release> = MODS
+        .iter()
+        .map(|item| Release {
+            package: item.package.into(),
+            version: "1.0.0".into(),
+            description: item.description.into(),
+            downloads_total: u64::MAX,
+        })
+        .collect();
+    let total = u128::from(u64::MAX) * MODS.len() as u128;
+    assert_eq!(catalog::downloads_total(&releases), Some(total));
+    let html = Mods {
+        mods: &MODS,
+        releases: &releases,
+    }
+    .render()
+    .unwrap();
+    assert!(html.contains(&format!("{total} total downloads across all 5 mods")));
+    releases.pop();
+    assert_eq!(catalog::downloads_total(&releases), None);
+    let partial = Mods {
+        mods: &MODS,
+        releases: &releases,
+    }
+    .render()
+    .unwrap();
+    assert!(!partial.contains("mods_downloads_total"));
+    assert_eq!(catalog::downloads_total(&[]), None);
+}
+
 #[tokio::test]
 async fn streams_are_bounded_release_capacity_and_close_on_shutdown() {
     let state = test_state();

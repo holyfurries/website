@@ -689,6 +689,11 @@
         margin-top: var(--space-2xs);
         max-width: 66ch;
     }
+    .mods_downloads_total {
+        margin-block-start: var(--space-2xs);
+        color: var(--forest-muted);
+        font-size: var(--type-small);
+    }
     .mod_copy .mod_downloads {
         font-size: var(--type-fine);
     }
