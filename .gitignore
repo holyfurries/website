@@ -24,6 +24,7 @@
 !/static/images.js
 !/static/navigation.js
 !/static/images/*.webp
+!/static/images/studio-social.png
 !/static/vendor/*.js
 !/static/vendor/*LICENSE*.txt
 !/static/sitemap.xml

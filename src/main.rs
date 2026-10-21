@@ -188,10 +188,10 @@ async fn game(Path(slug): Path<String>) -> Response {
             category: "City builder · Roguelike · In development",
             tagline: "A city builder set in the Late Bronze Age.",
             description: "Grow a palace city in the Late Bronze Age. Build an economy around the people who live there, trade across the sea, and face drought, raiders, famine, and the coming collapse.",
-            image: "crowns-adrift.webp",
-            image_width: 1672,
-            image_height: 941,
-            image_description: "Crowns Adrift title artwork: a Bronze Age palace above a harbour at sunset",
+            image: "crowns-adrift-gameplay.webp",
+            image_width: 1280,
+            image_height: 720,
+            image_description: "Crowns Adrift gameplay showing a Bronze Age city board and building cards",
             features: [
                 (
                     "City layout",
@@ -412,9 +412,13 @@ async fn asset(Path(path): Path<String>) -> Response {
             "text/javascript; charset=utf-8",
             include_bytes!("../static/vendor/datastar-1.0.4.js"),
         ),
-        "images/crowns-adrift.webp" => (
+        "images/studio-social.png" => (
+            "image/png",
+            include_bytes!("../static/images/studio-social.png"),
+        ),
+        "images/crowns-adrift-gameplay.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift.webp"),
+            include_bytes!("../static/images/crowns-adrift-gameplay.webp"),
         ),
         "images/cold-orbit.webp" => (
             "image/webp",
@@ -424,9 +428,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/spice-cad-workspace.webp"),
         ),
-        "images/crowns-adrift-preview.webp" => (
+        "images/crowns-adrift-gameplay-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift-preview.webp"),
+            include_bytes!("../static/images/crowns-adrift-gameplay-preview.webp"),
         ),
         "images/cold-orbit-preview.webp" => (
             "image/webp",

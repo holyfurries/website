@@ -18,19 +18,24 @@ website keeps local copies of the mark and favicon for serving its pages. The
 inline hero mark and its entrance animation follow the shared splash's artwork
 and timing.
 
-| Website asset                            | Source                                                                                |
-| ---------------------------------------- | ------------------------------------------------------------------------------------- |
-| `static/images/crowns-adrift.webp`       | `../tribute/crates/client/assets/menu/harbour.png`                                    |
-| `static/images/cold-orbit.webp`          | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
-| `static/images/spice-cad-workspace.webp` | `../spice-rack/docs/images/workspace.png`                                             |
-| `static/mark.svg`                        | Original geometric fox and halo drawn for this website                                |
-| `static/favicon.svg`                     | Simplified fox and halo with heavier features and a solid background for browser tabs |
+| Website asset                               | Source                                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `static/images/crowns-adrift-gameplay.webp` | `../tribute/docs/audits/2026-10-20/fixed/placement.png`                               |
+| `static/images/cold-orbit.webp`             | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
+| `static/images/spice-cad-workspace.webp`    | `../spice-rack/docs/images/workspace.png`                                             |
+| `static/mark.svg`                           | Original geometric fox and halo drawn for this website                                |
+| `static/favicon.svg`                        | Simplified fox and halo with heavier features and a solid background for browser tabs |
+| `static/images/studio-social.svg`           | Studio mark and wordmark arranged for shared-link previews                            |
 
 WebP conversions use `cwebp` at quality 86 for games and 90 for the CAD
-interface. Originals remain in their source projects. The Crowns Adrift title
-art’s existing provenance is recorded in
-`../tribute/crates/client/assets/menu/SOURCE.txt`. These are development images
-and are identified as such on the project pages.
+interface. Originals remain in their source projects. The Crowns Adrift image is
+a gameplay capture from the project's interface audit. These are development
+images and are identified as such on the project pages.
+
+`studio-social.png` is a 1200 × 630 browser-rendered export of
+`studio-social.svg`, with an opaque cream background for shared-link previews.
+Open Graph and Twitter metadata use this studio artwork independently of the
+project screenshots.
 
 Each `*-preview.webp` is a 64-pixel-wide copy of the corresponding website
 image, resized with ImageMagick (`-resize 64x -strip -quality 45`) and blurred

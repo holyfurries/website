@@ -44,6 +44,11 @@ async fn public_pages_links_metadata_and_assets() {
         .unwrap();
         assert!(html.contains("<h1"), "{path}");
         assert!(html.contains("rel=\"canonical\""), "{path}");
+        assert!(html.contains("property=\"og:image\" content=\"https://holyfurries.com/static/images/studio-social.png\""), "{path}");
+        assert!(
+            html.contains("name=\"twitter:card\" content=\"summary_large_image\""),
+            "{path}"
+        );
         assert!(!html.contains("TODO"), "{path}");
         for destination in html
             .split("href=\"")
@@ -62,10 +67,14 @@ async fn public_pages_links_metadata_and_assets() {
         }
     }
     for (path, mime) in [
-        ("/static/images/crowns-adrift.webp", "image/webp"),
+        ("/static/images/studio-social.png", "image/png"),
+        ("/static/images/crowns-adrift-gameplay.webp", "image/webp"),
         ("/static/images/cold-orbit.webp", "image/webp"),
         ("/static/images/spice-cad-workspace.webp", "image/webp"),
-        ("/static/images/crowns-adrift-preview.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-gameplay-preview.webp",
+            "image/webp",
+        ),
         ("/static/images/cold-orbit-preview.webp", "image/webp"),
         (
             "/static/images/spice-cad-workspace-preview.webp",

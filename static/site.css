@@ -39,8 +39,6 @@
         --ring: oklch(84.7265% 0.02039 106.827);
         --game-backdrop: oklch(18.1280% 0.02223 243.486);
         --white-line: oklch(100.0000% 0 0 / 50.196%);
-        --art-cream: oklch(95.1077% 0.04215 77.649);
-        --black: oklch(0.0000% 0 0);
         --forest-line: oklch(52.9597% 0.03114 135.13);
         --forest-divider: oklch(45.7453% 0.0283 133.719);
         --forest-tile: oklch(36.8078% 0.02898 137.391);
@@ -60,7 +58,6 @@
         --type-card: clamp(1.75rem, 1.6667rem + 0.3704vw, 2rem);
         --type-subheading: clamp(1.8125rem, 1.6667rem + 0.6481vw, 2.25rem);
         --type-tool: clamp(2rem, 1.75rem + 1.1111vw, 2.75rem);
-        --type-art: clamp(2.5rem, 2.25rem + 1.1111vw, 3.25rem);
         --type-section: clamp(2rem, 1.6667rem + 1.4815vw, 3rem);
         --type-studio: clamp(3.125rem, 2.4583rem + 2.963vw, 5.125rem);
         --type-display: clamp(3.5rem, 2.3333rem + 5.1852vw, 7rem);
@@ -479,8 +476,8 @@
         > img {
         opacity: 0;
     }
-    [data-image="crowns-adrift.webp"] {
-        --image-preview: url("/static/images/crowns-adrift-preview.webp");
+    [data-image="crowns-adrift-gameplay.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-gameplay-preview.webp");
     }
     [data-image="cold-orbit.webp"] {
         --image-preview: url("/static/images/cold-orbit-preview.webp");
@@ -558,11 +555,11 @@
         text-decoration: none;
     }
     .crowns .game_art img {
-        aspect-ratio: 1.18;
-        object-position: 67% center;
+        aspect-ratio: 16 / 9;
+        object-fit: contain;
     }
     .crowns .game_art {
-        --image-position: 67% center;
+        --image-fit: contain;
     }
     .art_badge {
         position: absolute;
@@ -591,21 +588,6 @@
     .art_arrow .link_arrow {
         width: 1.25rem;
         height: 1.25rem;
-    }
-    .art_title {
-        position: absolute;
-        left: 1.75rem;
-        bottom: 1.75rem;
-        color: var(--art-cream);
-        font:
-            var(--type-subheading) / 0.95 Georgia,
-            serif;
-        letter-spacing: -0.05em;
-        text-shadow: 0 0.125rem 1.5625rem var(--black);
-    }
-    .art_title i {
-        font-weight: 400;
-        font-size: var(--type-art);
     }
     .game_meta {
         display: flex;
