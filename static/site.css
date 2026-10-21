@@ -84,7 +84,7 @@
     }
     html {
         scroll-behavior: smooth;
-        scroll-padding-top: var(--space-l);
+        scroll-padding-top: calc(var(--header-height, 10rem) + var(--space-s));
     }
     body {
         background: var(--paper);
@@ -200,10 +200,17 @@
 }
 @layer layout {
     .site_header {
+        container-type: inline-size;
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 5;
+        background: var(--paper);
+    }
+    .header_inner {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-block: var(--space-m);
+        padding-block: clamp(0.5rem, -0.0625rem + 2.5vw, 1.875rem);
         border-bottom: 0.0625rem solid var(--line);
         flex-wrap: wrap;
         gap: var(--space-s) var(--space-m);
@@ -234,15 +241,41 @@
     }
     .site_header nav {
         display: flex;
-        gap: var(--space-s) var(--space-l);
+        gap: var(--space-2xs) clamp(0.75rem, 3vw, 2.5rem);
         align-items: center;
         font-size: var(--type-meta);
         flex-wrap: wrap;
         max-width: 100%;
     }
+    .site_header nav a {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: 2.75rem;
+    }
     .nav_studio {
         border: 1px solid var(--line);
         padding: var(--space-2xs) var(--space-s);
+    }
+    @container (width < 36rem) {
+        .header_inner {
+            gap: var(--space-2xs);
+        }
+        .site_header .brand > span {
+            display: none;
+        }
+        .site_header .brand img {
+            width: 2rem;
+        }
+        .site_header nav {
+            font-size: var(--type-small);
+        }
+        .nav_studio {
+            border: 0;
+            padding: 0;
+        }
+        .nav_studio .link_arrow {
+            display: none;
+        }
     }
     .hero_top,
     .hero_bottom {
@@ -455,8 +488,8 @@
     [data-image="cold-orbit.webp"] {
         --image-preview: url("/static/images/cold-orbit-preview.webp");
     }
-    [data-image="spice-cad.webp"] {
-        --image-preview: url("/static/images/spice-cad-preview.webp");
+    [data-image="spice-cad-workspace.webp"] {
+        --image-preview: url("/static/images/spice-cad-workspace-preview.webp");
     }
     .hero_emblem {
         position: relative;

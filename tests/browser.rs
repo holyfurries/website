@@ -187,6 +187,67 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                     json!({"url":website}),
                 )
                 .await;
+                for width in [480, 1280] {
+                    request(
+                        &client,
+                        Method::POST,
+                        &format!("{session}/window/rect"),
+                        json!({"width":width,"height":1000}),
+                    )
+                    .await;
+                    if width == 480 {
+                        let compact = script(&client, &session, r#"
+                            const header = document.querySelector('.site_header').getBoundingClientRect();
+                            return header.height <= 80 && [...document.querySelectorAll('.site_header nav a')]
+                                .every(link => link.getBoundingClientRect().height >= 44);
+                        "#, json!([])).await;
+                        assert_eq!(
+                            compact, true,
+                            "{engine}: compact mobile navigation with usable tap targets"
+                        );
+                    }
+                    script(&client, &session,
+                        "window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'instant'}); return true;",
+                        json!([])).await;
+                    wait(&client, &session, r#"
+                        const header = document.querySelector('.site_header').getBoundingClientRect();
+                        return Math.abs(header.top) < 1 && header.bottom < innerHeight;
+                    "#).await;
+                    click(&client, &session, ".site_header nav a[href='/#mods']").await;
+                    wait(&client, &session, r#"
+                        const title = document.querySelector('#mods_title').getBoundingClientRect();
+                        const header = document.querySelector('.site_header').getBoundingClientRect();
+                        const target = document.querySelector('#mods').getBoundingClientRect();
+                        const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+                        return location.hash === '#mods' && Math.abs(target.top - padding) < 2
+                            && title.top >= header.bottom && title.top < innerHeight;
+                    "#).await;
+                    script(
+                        &client,
+                        &session,
+                        "document.body.dataset.navigationTest = 'preserved'; return true;",
+                        json!([]),
+                    )
+                    .await;
+                    click(&client, &session, ".site_header .brand").await;
+                    wait(
+                        &client,
+                        &session,
+                        "return location.hash === '#top' && scrollY < 1",
+                    )
+                    .await;
+                    let preserved = script(
+                        &client,
+                        &session,
+                        "return document.body.dataset.navigationTest === 'preserved'",
+                        json!([]),
+                    )
+                    .await;
+                    assert_eq!(
+                        preserved, true,
+                        "{engine}: home logo scrolls without reloading"
+                    );
+                }
                 let images = script(
                     &client,
                     &session,
@@ -201,6 +262,20 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                 wait(&client, &session, "return [...document.images].every(image => image.complete && image.naturalWidth > 0)").await;
                 click(&client, &session, ".crowns .text_link").await;
                 wait(&client, &session, "return location.pathname === '/games/crowns-adrift' && document.querySelector('h1').textContent.includes('Crowns')").await;
+                click(&client, &session, ".site_header .brand").await;
+                wait(
+                    &client,
+                    &session,
+                    "return location.pathname === '/' && location.hash === '#top' && scrollY < 1",
+                )
+                .await;
+                request(&client, Method::POST, &format!("{session}/back"), json!({})).await;
+                wait(
+                    &client,
+                    &session,
+                    "return location.pathname === '/games/crowns-adrift'",
+                )
+                .await;
                 request(&client, Method::POST, &format!("{session}/back"), json!({})).await;
                 wait(&client, &session, "return location.pathname === '/'").await;
                 click(&client, &session, ".site_header nav a").await;
@@ -216,10 +291,10 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                     "9.8.8"
                 };
                 nats.publish("holyfurries.catalog.release", serde_json::to_vec(&json!({
-                    "package":"ClearMinimap", "version":version, "description":"Browser-tested minimap.", "downloads":42
+                    "package":"ClearMinimap", "version":version, "description":"Browser-tested minimap.", "downloads_total":42
                 })).unwrap().into()).await.unwrap();
                 nats.flush().await.unwrap();
-                wait(&client, &session, &format!("return document.querySelector('#mod_ClearMinimap').textContent.includes('v{version}') && document.querySelector('#mod_ClearMinimap').textContent.includes('Browser-tested minimap.') && document.querySelector('#mod_ClearMinimap').textContent.includes('42 downloads')")).await;
+                wait(&client, &session, &format!("return document.querySelector('#mod_ClearMinimap').textContent.includes('v{version}') && document.querySelector('#mod_ClearMinimap').textContent.includes('Browser-tested minimap.') && document.querySelector('#mod_ClearMinimap').textContent.includes('42 downloads total')")).await;
             }
             request(&client, Method::DELETE, &session, json!({})).await;
             eprintln!("Browser: {engine}, reduced motion {reduced} passed");

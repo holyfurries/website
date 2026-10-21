@@ -18,13 +18,13 @@ website keeps local copies of the mark and favicon for serving its pages. The
 inline hero mark and its entrance animation follow the shared splash's artwork
 and timing.
 
-| Website asset                      | Source                                                                                |
-| ---------------------------------- | ------------------------------------------------------------------------------------- |
-| `static/images/crowns-adrift.webp` | `../tribute/crates/client/assets/menu/harbour.png`                                    |
-| `static/images/cold-orbit.webp`    | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
-| `static/images/spice-cad.webp`     | `../spice-rack/output/native/ui-pass-verified-qa/desktop.png`                         |
-| `static/mark.svg`                  | Original geometric fox and halo drawn for this website                                |
-| `static/favicon.svg`               | Simplified fox and halo with heavier features and a solid background for browser tabs |
+| Website asset                            | Source                                                                                |
+| ---------------------------------------- | ------------------------------------------------------------------------------------- |
+| `static/images/crowns-adrift.webp`       | `../tribute/crates/client/assets/menu/harbour.png`                                    |
+| `static/images/cold-orbit.webp`          | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
+| `static/images/spice-cad-workspace.webp` | `../spice-rack/docs/images/workspace.png`                                             |
+| `static/mark.svg`                        | Original geometric fox and halo drawn for this website                                |
+| `static/favicon.svg`                     | Simplified fox and halo with heavier features and a solid background for browser tabs |
 
 WebP conversions use `cwebp` at quality 86 for games and 90 for the CAD
 interface. Originals remain in their source projects. The Crowns Adrift title

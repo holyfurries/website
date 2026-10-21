@@ -61,7 +61,7 @@ pub struct Release {
     pub package: String,
     pub version: String,
     pub description: String,
-    pub downloads: u64,
+    pub downloads_total: u64,
 }
 
 impl Release {
@@ -105,7 +105,12 @@ struct Version {
     version_number: String,
     is_active: bool,
     description: String,
-    downloads: u64,
+}
+
+#[derive(Deserialize)]
+struct Metrics {
+    #[serde(rename = "downloads")]
+    downloads_total: u64,
 }
 
 pub async fn fetch_release(
@@ -114,6 +119,19 @@ pub async fn fetch_release(
 ) -> Result<Release, Box<dyn Error + Send + Sync>> {
     assert!(MODS.iter().any(|item| item.package == package));
     let url = format!("https://thunderstore.io/api/experimental/package/holyfurries/{package}/");
+    let metrics_url =
+        format!("https://thunderstore.io/api/v1/package-metrics/holyfurries/{package}/");
+    let (body, metrics) = tokio::try_join!(
+        fetch_metadata(client, &url),
+        fetch_metadata(client, &metrics_url)
+    )?;
+    parse_release(package, &body, &metrics)
+}
+
+async fn fetch_metadata(
+    client: &reqwest::Client,
+    url: &str,
+) -> Result<Vec<u8>, Box<dyn Error + Send + Sync>> {
     let mut response = client
         .get(url)
         .timeout(Duration::from_secs(15))
@@ -127,13 +145,19 @@ pub async fn fetch_release(
         }
         body.extend_from_slice(&chunk);
     }
-    parse_release(package, &body)
+    Ok(body)
 }
 
-fn parse_release(package: &str, body: &[u8]) -> Result<Release, Box<dyn Error + Send + Sync>> {
+fn parse_release(
+    package: &str,
+    body: &[u8],
+    metrics: &[u8],
+) -> Result<Release, Box<dyn Error + Send + Sync>> {
     assert!(body.len() <= 65_536);
+    assert!(metrics.len() <= 65_536);
     assert!(MODS.iter().any(|item| item.package == package));
     let result: Package = serde_json::from_slice(body)?;
+    let metrics: Metrics = serde_json::from_slice(metrics)?;
     if result.namespace != "holyfurries" {
         return Err("Unexpected package owner".into());
     }
@@ -147,7 +171,7 @@ fn parse_release(package: &str, body: &[u8]) -> Result<Release, Box<dyn Error + 
         package: result.name,
         version: result.latest.version_number,
         description: result.latest.description.trim().replace('\u{2014}', " - "),
-        downloads: result.latest.downloads,
+        downloads_total: metrics.downloads_total,
     };
     if !release.valid() {
         return Err("Invalid release metadata".into());
@@ -163,23 +187,63 @@ mod tests {
 
     #[test]
     fn thunderstore_metadata_is_validated_before_it_replaces_the_catalog() {
-        let mut package = json!({"namespace":"holyfurries", "name":"ClearMinimap", "latest":{
+        let metrics = br#"{"downloads":420}"#;
+        let mut package = json!({"namespace":"holyfurries", "name":"ClearMinimap", "total_downloads":-1, "latest":{
             "version_number":"0.2.1", "is_active":true,
             "description":" A minimap\u{2014}with markers. ", "downloads":42
         }});
-        let release =
-            parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).unwrap();
+        let release = parse_release(
+            "ClearMinimap",
+            &serde_json::to_vec(&package).unwrap(),
+            metrics,
+        )
+        .unwrap();
         assert_eq!(release.description, "A minimap - with markers.");
-        assert_eq!(release.downloads, 42);
+        assert_eq!(release.downloads_total, 420);
+        for invalid in [
+            br#"{"downloads":-1}"#.as_slice(),
+            br#"{"downloads":null}"#,
+            b"{}",
+        ] {
+            assert!(
+                parse_release(
+                    "ClearMinimap",
+                    &serde_json::to_vec(&package).unwrap(),
+                    invalid
+                )
+                .is_err()
+            );
+        }
         package["latest"]["is_active"] = json!(false);
-        assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+        assert!(
+            parse_release(
+                "ClearMinimap",
+                &serde_json::to_vec(&package).unwrap(),
+                metrics
+            )
+            .is_err()
+        );
         package["latest"]["is_active"] = json!(true);
         package["namespace"] = json!("someone-else");
-        assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+        assert!(
+            parse_release(
+                "ClearMinimap",
+                &serde_json::to_vec(&package).unwrap(),
+                metrics
+            )
+            .is_err()
+        );
         package["namespace"] = json!("holyfurries");
         for description in [String::new(), "x".repeat(513), "line\nbreak".into()] {
             package["latest"]["description"] = json!(description);
-            assert!(parse_release("ClearMinimap", &serde_json::to_vec(&package).unwrap()).is_err());
+            assert!(
+                parse_release(
+                    "ClearMinimap",
+                    &serde_json::to_vec(&package).unwrap(),
+                    metrics
+                )
+                .is_err()
+            );
         }
     }
 }

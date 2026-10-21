@@ -23,7 +23,7 @@ jobs:
         run: |
           nix develop --command cargo fmt --check
           nix develop --command nixfmt --check flake.nix nix/*.nix
-          nix develop --command biome format --indent-style=space --indent-width=4 static/site.css static/images.js
+          nix develop --command biome format --indent-style=space --indent-width=4 static/site.css static/images.js static/navigation.js
           nix develop --command tofu -chdir=ops fmt -check -recursive
       - name: Build and test
         run: nix flake check --print-build-logs

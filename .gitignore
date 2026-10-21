@@ -22,6 +22,7 @@
 !/static/**/*.css
 !/static/**/*.svg
 !/static/images.js
+!/static/navigation.js
 !/static/images/*.webp
 !/static/vendor/*.js
 !/static/vendor/*LICENSE*.txt

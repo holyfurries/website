@@ -5,10 +5,10 @@ software tools.
 
 Rust, Axum, and Askama serve HTML with embedded templates and assets. Datastar
 updates the mod catalog over SSE, and NATS carries release metadata from
-Thunderstore. Versions, descriptions, and downloads for each latest release
-refresh every 30 minutes. Failed requests retain the current metadata; written
-descriptions remain the fallback before the first successful fetch. Pages and
-install links work without browser JavaScript.
+Thunderstore. Latest versions, descriptions, and total downloads across all
+versions refresh every 30 minutes. Failed requests retain the current metadata;
+written descriptions remain the fallback before the first successful fetch.
+Pages and install links work without browser JavaScript.
 
 ## Run
 
@@ -71,12 +71,13 @@ for Terraform. Keep generated files and vendored code unchanged.
 
 Colors use OKLCH. Typography, spacing, and gutters use
 [Utopia](https://utopia.fyi/) fluid clamps. Flex wrapping and auto-fit grids
-adapt to available space without layout breakpoints. Images show small blurred
-previews while loading and fade in after decoding. Pages enter with a quick
-upward movement. Browsers with cross-document view transitions also animate
-internal page navigation. The homepage fox enters with the shared studio
-splash's halo bounce, glance, and blink. Reduced-motion mode disables these
-animations.
+adapt to available space, with a container query keeping the mobile header
+compact. Images show small blurred previews while loading and fade in after
+decoding. The navigation stays visible while scrolling, and section links
+account for its current height. Pages enter with a quick upward movement.
+Browsers with cross-document view transitions also animate internal page
+navigation. The homepage fox enters with the shared studio splash's halo bounce,
+glance, and blink. Reduced-motion mode disables these animations.
 
 ## Deployment
 

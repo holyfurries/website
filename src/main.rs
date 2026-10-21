@@ -248,8 +248,8 @@ async fn tool() -> Response {
         path: "tools/spice-cad", name: "Spice CAD", category: "Desktop CAD modeler · In development",
         tagline: "A desktop CAD modeler for scripted designs.",
         description: "Write models in Luau and inspect the resulting geometry in a native Rust application. The project began as a parametric spice-rack model.",
-        image: "spice-cad.webp", image_width: 1400, image_height: 900,
-        image_description: "Spice CAD development screenshot showing its modeling workspace",
+        image: "spice-cad-workspace.webp", image_width: 1700, image_height: 1050,
+        image_description: "Spice CAD showing Luau code, a mounting bracket model, and editable parameters",
         features: [("Luau editor", "An integrated Luau editor keeps your construction logic alongside the resulting model."), ("3D viewport", "Orbit the viewport, select geometry, and inspect dimensions in the native desktop interface."), ("Parametric parts", "The original spice-rack model uses dimensions for the cabinet, jars, and printable parts.")],
     }.render())
 }
@@ -404,6 +404,10 @@ async fn asset(Path(path): Path<String>) -> Response {
             "text/javascript; charset=utf-8",
             include_bytes!("../static/images.js"),
         ),
+        "navigation.js" => (
+            "text/javascript; charset=utf-8",
+            include_bytes!("../static/navigation.js"),
+        ),
         "vendor/datastar-1.0.4.js" => (
             "text/javascript; charset=utf-8",
             include_bytes!("../static/vendor/datastar-1.0.4.js"),
@@ -416,9 +420,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/cold-orbit.webp"),
         ),
-        "images/spice-cad.webp" => (
+        "images/spice-cad-workspace.webp" => (
             "image/webp",
-            include_bytes!("../static/images/spice-cad.webp"),
+            include_bytes!("../static/images/spice-cad-workspace.webp"),
         ),
         "images/crowns-adrift-preview.webp" => (
             "image/webp",
@@ -428,9 +432,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/cold-orbit-preview.webp"),
         ),
-        "images/spice-cad-preview.webp" => (
+        "images/spice-cad-workspace-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/spice-cad-preview.webp"),
+            include_bytes!("../static/images/spice-cad-workspace-preview.webp"),
         ),
         _ => return StatusCode::NOT_FOUND.into_response(),
     };
