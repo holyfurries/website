@@ -113,9 +113,6 @@
     h2 {
         font-size: var(--type-section);
     }
-    p {
-        max-width: 65ch;
-    }
     a {
         text-underline-offset: 0.3125rem;
     }
@@ -627,7 +624,6 @@
     .game_card > p {
         color: var(--muted);
         font-size: var(--type-small);
-        max-width: 48ch;
     }
     .game_card .text_link {
         margin-top: var(--space-s);
@@ -674,10 +670,15 @@
     .mod_copy h3 {
         font-size: var(--type-heading);
         letter-spacing: -0.035em;
+    }
+    .mod_metadata {
         display: flex;
         align-items: center;
         gap: var(--space-xs);
         flex-wrap: wrap;
+        margin-block-start: var(--space-2xs);
+        font-size: var(--type-meta);
+        color: var(--forest-muted);
     }
     .version {
         font:
@@ -688,18 +689,15 @@
         color: var(--forest-muted);
     }
     .mod_copy p {
-        font-size: var(--type-meta);
+        font-size: var(--type-small);
         color: var(--forest-muted);
         margin-top: var(--space-2xs);
-        max-width: 66ch;
     }
     .mods_downloads_total {
         margin-block-start: var(--space-2xs);
-        color: var(--forest-muted);
-        font-size: var(--type-small);
-    }
-    .mod_copy .mod_downloads {
-        font-size: var(--type-fine);
+        color: var(--paper);
+        font-size: var(--type-body);
+        font-weight: 600;
     }
     .mod_links {
         display: flex;
@@ -723,7 +721,6 @@
         font-size: var(--type-caption);
         color: var(--forest-muted);
         margin-top: var(--space-m);
-        max-width: 100ch;
     }
     .tool_copy {
         flex: 0.85 1 min(100%, 18rem);
