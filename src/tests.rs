@@ -72,21 +72,18 @@ async fn public_pages_links_metadata_and_assets() {
     }
     for (path, mime) in [
         ("/static/images/studio-social.png", "image/png"),
-        ("/static/images/crowns-adrift-gameplay.webp", "image/webp"),
+        ("/static/images/crowns-adrift-city.webp", "image/webp"),
         ("/static/images/cold-orbit-flight.webp", "image/webp"),
-        ("/static/images/spice-cad-workspace.webp", "image/webp"),
+        ("/static/images/spice-cad-editor.webp", "image/webp"),
         (
-            "/static/images/crowns-adrift-gameplay-preview.webp",
+            "/static/images/crowns-adrift-city-preview.webp",
             "image/webp",
         ),
         (
             "/static/images/cold-orbit-flight-preview.webp",
             "image/webp",
         ),
-        (
-            "/static/images/spice-cad-workspace-preview.webp",
-            "image/webp",
-        ),
+        ("/static/images/spice-cad-editor-preview.webp", "image/webp"),
         ("/static/images.js", "text/javascript; charset=utf-8"),
         ("/static/navigation.js", "text/javascript; charset=utf-8"),
         (

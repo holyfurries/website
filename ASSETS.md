@@ -18,19 +18,22 @@ website keeps local copies of the mark and favicon for serving its pages. The
 inline hero mark and its entrance animation follow the shared splash's artwork
 and timing.
 
-| Website asset                               | Source                                                                                |
-| ------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `static/images/crowns-adrift-gameplay.webp` | `../tribute/docs/audits/2026-10-20/fixed/placement.png`                               |
-| `static/images/cold-orbit-flight.webp`      | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
-| `static/images/spice-cad-workspace.webp`    | `../spice-rack/docs/images/workspace.png`                                             |
-| `static/mark.svg`                           | Original geometric fox and halo drawn for this website                                |
-| `static/favicon.svg`                        | Simplified fox and halo with heavier features and a solid background for browser tabs |
-| `static/images/studio-social.svg`           | Studio mark and wordmark arranged for shared-link previews                            |
+| Website asset                           | Source                                                                                |
+| --------------------------------------- | ------------------------------------------------------------------------------------- |
+| `static/images/crowns-adrift-city.webp` | `../tribute/target/playtests/website/2026-10-21-city.png`                             |
+| `static/images/cold-orbit-flight.webp`  | `../space-game/assets/contrast-lighting-burn-preview.png`                             |
+| `static/images/spice-cad-editor.webp`   | `../spice-rack/docs/images/workspace.png`                                             |
+| `static/mark.svg`                       | Original geometric fox and halo drawn for this website                                |
+| `static/favicon.svg`                    | Simplified fox and halo with heavier features and a solid background for browser tabs |
+| `static/images/studio-social.svg`       | Studio mark and wordmark arranged for shared-link previews                            |
 
 WebP conversions use `cwebp` at quality 86 for games and 90 for the CAD
 interface. Originals remain in their source projects. The Crowns Adrift image is
-a gameplay capture from the project's interface audit. These are development
-images and are identified as such on the project pages.
+a fresh 1600 by 900 gameplay capture from the current client, taken with
+`TRIBUTE_SHOT_FRAMES=110 scripts/shot.sh <output> build 2` inside its
+development shell. Spice CAD shows its updated typed Luau editor, rounded-cube
+model, and parameter controls. These are development images and are identified
+as such on the project pages.
 
 The Cold Orbit capture has its top 64-pixel debug strip cropped before WebP
 conversion. This removes the FPS/frame-time overlay while retaining the ship and

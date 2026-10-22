@@ -189,10 +189,10 @@ async fn game(Path(slug): Path<String>) -> Response {
             category: "City builder · Roguelike · In development",
             tagline: "A city builder set in the Late Bronze Age.",
             description: "Grow a palace city in the Late Bronze Age. Build an economy around the people who live there, trade across the sea, and face drought, raiders, famine, and the coming collapse.",
-            image: "crowns-adrift-gameplay.webp",
-            image_width: 1280,
-            image_height: 720,
-            image_description: "Crowns Adrift gameplay showing a Bronze Age city board and building cards",
+            image: "crowns-adrift-city.webp",
+            image_width: 1600,
+            image_height: 900,
+            image_description: "Crowns Adrift gameplay showing an island city, coastal raiders, and building and unit cards",
             repository: None,
             features: [
                 (
@@ -251,8 +251,8 @@ async fn tool() -> Response {
         path: "tools/spice-cad", name: "Spice CAD", category: "Desktop CAD modeler · In development",
         tagline: "A desktop CAD modeler for scripted designs.",
         description: "Write models in Luau and inspect the resulting geometry in a native Rust application. The project began as a parametric spice-rack model.",
-        image: "spice-cad-workspace.webp", image_width: 1700, image_height: 1050,
-        image_description: "Spice CAD showing Luau code, a mounting bracket model, and editable parameters",
+        image: "spice-cad-editor.webp", image_width: 1700, image_height: 1050,
+        image_description: "Spice CAD showing typed Luau code, a rounded cube, and size and corner-radius controls",
         repository: Some("https://github.com/holyfurries/spice-cad"),
         features: [("Luau editor", "An integrated Luau editor keeps your construction logic alongside the resulting model."), ("3D viewport", "Orbit the viewport, select geometry, and inspect dimensions in the native desktop interface."), ("Parametric parts", "The original spice-rack model uses dimensions for the cabinet, jars, and printable parts.")],
     }.render())
@@ -420,29 +420,29 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/png",
             include_bytes!("../static/images/studio-social.png"),
         ),
-        "images/crowns-adrift-gameplay.webp" => (
+        "images/crowns-adrift-city.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift-gameplay.webp"),
+            include_bytes!("../static/images/crowns-adrift-city.webp"),
         ),
         "images/cold-orbit-flight.webp" => (
             "image/webp",
             include_bytes!("../static/images/cold-orbit-flight.webp"),
         ),
-        "images/spice-cad-workspace.webp" => (
+        "images/spice-cad-editor.webp" => (
             "image/webp",
-            include_bytes!("../static/images/spice-cad-workspace.webp"),
+            include_bytes!("../static/images/spice-cad-editor.webp"),
         ),
-        "images/crowns-adrift-gameplay-preview.webp" => (
+        "images/crowns-adrift-city-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift-gameplay-preview.webp"),
+            include_bytes!("../static/images/crowns-adrift-city-preview.webp"),
         ),
         "images/cold-orbit-flight-preview.webp" => (
             "image/webp",
             include_bytes!("../static/images/cold-orbit-flight-preview.webp"),
         ),
-        "images/spice-cad-workspace-preview.webp" => (
+        "images/spice-cad-editor-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/spice-cad-workspace-preview.webp"),
+            include_bytes!("../static/images/spice-cad-editor-preview.webp"),
         ),
         _ => return StatusCode::NOT_FOUND.into_response(),
     };
