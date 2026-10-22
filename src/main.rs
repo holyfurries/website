@@ -189,10 +189,10 @@ async fn game(Path(slug): Path<String>) -> Response {
             category: "City builder · Roguelike · In development",
             tagline: "A city builder set in the Late Bronze Age.",
             description: "Grow a palace city in the Late Bronze Age. Build an economy around the people who live there, trade across the sea, and face drought, raiders, famine, and the coming collapse.",
-            image: "crowns-adrift-city.webp",
+            image: "crowns-adrift-island.webp",
             image_width: 1600,
             image_height: 900,
-            image_description: "Crowns Adrift gameplay showing an island city, coastal raiders, and building and unit cards",
+            image_description: "Crowns Adrift gameplay showing the low-poly island, palace, resources, and building and unit cards",
             repository: None,
             features: [
                 (
@@ -420,9 +420,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/png",
             include_bytes!("../static/images/studio-social.png"),
         ),
-        "images/crowns-adrift-city.webp" => (
+        "images/crowns-adrift-island.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift-city.webp"),
+            include_bytes!("../static/images/crowns-adrift-island.webp"),
         ),
         "images/cold-orbit-flight.webp" => (
             "image/webp",
@@ -432,9 +432,9 @@ async fn asset(Path(path): Path<String>) -> Response {
             "image/webp",
             include_bytes!("../static/images/spice-cad-editor.webp"),
         ),
-        "images/crowns-adrift-city-preview.webp" => (
+        "images/crowns-adrift-island-preview.webp" => (
             "image/webp",
-            include_bytes!("../static/images/crowns-adrift-city-preview.webp"),
+            include_bytes!("../static/images/crowns-adrift-island-preview.webp"),
         ),
         "images/cold-orbit-flight-preview.webp" => (
             "image/webp",

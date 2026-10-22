@@ -72,11 +72,11 @@ async fn public_pages_links_metadata_and_assets() {
     }
     for (path, mime) in [
         ("/static/images/studio-social.png", "image/png"),
-        ("/static/images/crowns-adrift-city.webp", "image/webp"),
+        ("/static/images/crowns-adrift-island.webp", "image/webp"),
         ("/static/images/cold-orbit-flight.webp", "image/webp"),
         ("/static/images/spice-cad-editor.webp", "image/webp"),
         (
-            "/static/images/crowns-adrift-city-preview.webp",
+            "/static/images/crowns-adrift-island-preview.webp",
             "image/webp",
         ),
         (

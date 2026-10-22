@@ -476,8 +476,8 @@
         > img {
         opacity: 0;
     }
-    [data-image="crowns-adrift-city.webp"] {
-        --image-preview: url("/static/images/crowns-adrift-city-preview.webp");
+    [data-image="crowns-adrift-island.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-island-preview.webp");
     }
     [data-image="cold-orbit-flight.webp"] {
         --image-preview: url("/static/images/cold-orbit-flight-preview.webp");
