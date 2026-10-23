@@ -166,6 +166,10 @@ fn render(result: Result<String, askama::Error>) -> Response {
 }
 
 #[derive(Template)]
+#[template(path = "crowns.html")]
+struct Crowns;
+
+#[derive(Template)]
 #[template(path = "project.html")]
 struct Project {
     path: &'static str,
@@ -183,32 +187,7 @@ struct Project {
 
 async fn game(Path(slug): Path<String>) -> Response {
     let project = match slug.as_str() {
-        "crowns-adrift" => Project {
-            path: "games/crowns-adrift",
-            name: "Crowns Adrift",
-            category: "City builder · Roguelike · In development",
-            tagline: "A city builder set in the Late Bronze Age.",
-            description: "Grow a palace city in the Late Bronze Age. Build an economy around the people who live there, trade across the sea, and face drought, raiders, famine, and the coming collapse.",
-            image: "crowns-adrift-island.webp",
-            image_width: 1600,
-            image_height: 900,
-            image_description: "Crowns Adrift gameplay showing the low-poly island, palace, resources, and building and unit cards",
-            repository: None,
-            features: [
-                (
-                    "City layout",
-                    "Place workshops, houses, and services on a regional board. Land and the reach of your buildings shape the economy.",
-                ),
-                (
-                    "Production and trade",
-                    "Different citizens need different goods. Decide whom to serve and build the production chains to support them.",
-                ),
-                (
-                    "Roguelike runs",
-                    "Choose petitions and encounter actions while drought, raiders, and famine put increasing pressure on your city.",
-                ),
-            ],
-        },
+        "crowns-adrift" => return render(Crowns.render()),
         "cold-orbit" => Project {
             path: "games/cold-orbit",
             name: "Cold Orbit",
@@ -423,6 +402,54 @@ async fn asset(Path(path): Path<String>) -> Response {
         "images/crowns-adrift-island.webp" => (
             "image/webp",
             include_bytes!("../static/images/crowns-adrift-island.webp"),
+        ),
+        "images/crowns-adrift-detail.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-detail.webp"),
+        ),
+        "images/crowns-adrift-detail-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-detail-preview.webp"),
+        ),
+        "images/crowns-adrift-fields.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-fields.webp"),
+        ),
+        "images/crowns-adrift-fields-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-fields-preview.webp"),
+        ),
+        "images/crowns-adrift-granary.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-granary.webp"),
+        ),
+        "images/crowns-adrift-granary-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-granary-preview.webp"),
+        ),
+        "images/crowns-adrift-foundry.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-foundry.webp"),
+        ),
+        "images/crowns-adrift-foundry-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-foundry-preview.webp"),
+        ),
+        "images/crowns-adrift-levy.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-levy.webp"),
+        ),
+        "images/crowns-adrift-levy-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-levy-preview.webp"),
+        ),
+        "images/crowns-adrift-commander.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-commander.webp"),
+        ),
+        "images/crowns-adrift-commander-preview.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-commander-preview.webp"),
         ),
         "images/cold-orbit-flight.webp" => (
             "image/webp",

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Crowns Adrift | Holy Furries Studio{% endblock %}
+{% block social_title %}Crowns Adrift | Holy Furries Studio{% endblock %}
+{% block description %}A roguelike city builder set in the Late Bronze Age. Play building and troop cards, connect production chains, and defend your island against the coming collapse.{% endblock %}
+{% block social_description %}A roguelike city builder set in the Late Bronze Age. Play building and troop cards, connect production chains, and defend your island against the coming collapse.{% endblock %}
+{% block canonical %}games/crowns-adrift{% endblock %}
+{% block content %}
+<main id="main" class="wrap project_page crowns_page">
+	<a class="text_link" href="/#games">← <span class="link_label">Back to the games</span></a>
+	<p class="eyebrow project_category">CITY BUILDER / ROGUELIKE / IN DEVELOPMENT</p>
+	<h1>Crowns Adrift<span class="red">.</span></h1>
+	<div class="project_intro">
+		<div><h2>A roguelike city builder set in the Late Bronze Age.</h2><a class="text_link crowns_intro_link" href="#how-it-plays"><span class="link_label">See how it plays</span><span aria-hidden="true">↓</span></a></div>
+		<p>Grow a palace city from a hand of cards. Recruit an army through the households and military buildings you place, and keep it supplied as drought, raiders, and famine threaten your island.</p>
+	</div>
+	<figure class="project_image">
+		<div class="image_frame" data-image="crowns-adrift-island.webp"><img src="/static/images/crowns-adrift-island.webp" alt="Crowns Adrift gameplay showing the low-poly island, palace, resources, and building and unit cards" width="1600" height="900" decoding="async" fetchpriority="high"></div>
+		<figcaption>Development gameplay.</figcaption>
+	</figure>
+	<section id="how-it-plays" class="crowns_section crowns_land" aria-labelledby="crowns_loop_title">
+		<div><p class="eyebrow">DECKBUILDING</p><h2 id="crowns_loop_title">Build your deck as you build your city.</h2></div>
+		<div><p>Your citizens petition for new buildings, households, and decrees. Choose which cards to add to your deck, then play them onto the island.</p><p>The city adds cards of its own. Build a Training Yard to gain Drill cards that strengthen your troops. Supply farmer households nearby to make those cards more powerful.</p></div>
+	</section>
+	<section class="crowns_section crowns_land" aria-labelledby="crowns_land_title">
+		<div><p class="eyebrow">CITY BUILDING</p><h2 id="crowns_land_title">Build around the island.</h2><p>Each run starts on a generated island. Fields yield more grain on floodplains, fisheries need a coast, and mines need hills or mountains. Fit your production chains around the terrain and keep workplaces within reach of workers.</p></div>
+		<figure class="project_image"><div class="image_frame" data-image="crowns-adrift-detail.webp"><img src="/static/images/crowns-adrift-detail.webp" alt="A closer gameplay view of the palace beside a river and the island's pale coastal cliffs" width="1600" height="900" loading="lazy" decoding="async"></div><figcaption>A closer view of the palace and riverbank in the development build.</figcaption></figure>
+	</section>
+	<section class="crowns_section" aria-labelledby="crowns_economy_title">
+		<div class="section_heading"><div><p class="eyebrow">PRODUCTION</p><h2 id="crowns_economy_title">Feed your people. Supply your army.</h2></div></div>
+		<div class="crowns_buildings">
+			<article><div class="image_frame crowns_sprite" data-image="crowns-adrift-fields.webp"><img src="/static/images/crowns-adrift-fields.webp" alt="In-game wheat field model" width="128" height="128" loading="lazy" decoding="async"></div><h3>Fields</h3><p>Harvest grain to feed households and supply barracks. A staffed, supplied barracks deploys a levy every year.</p></article>
+			<article><div class="image_frame crowns_sprite" data-image="crowns-adrift-granary.webp"><img src="/static/images/crowns-adrift-granary.webp" alt="In-game granary model with raised storage bins and thatched roofs" width="128" height="128" loading="lazy" decoding="async"></div><h3>Granary</h3><p>Keep nearby surplus grain for next year instead of selling it. Stored grain also strengthens recruitment through a Muster Hall.</p></article>
+			<article><div class="image_frame crowns_sprite" data-image="crowns-adrift-foundry.webp"><img src="/static/images/crowns-adrift-foundry.webp" alt="In-game bronze foundry model with a terracotta roof and chimney" width="128" height="128" loading="lazy" decoding="async"></div><h3>Foundry</h3><p>Turn copper and tin into Bronze Tools cards. Spend them on permanent workplace upgrades or use them to damage an enemy.</p></article>
+		</div>
+	</section>
+	<section class="crowns_section crowns_army" aria-labelledby="crowns_army_title">
+		<div><p class="eyebrow">AUTO BATTLER</p><h2 id="crowns_army_title">Send your army into battle.</h2><p>Play troop cards to deploy now or queue reinforcements for a later year. Train and equip your soldiers before ending the year, when they fight enemy waves automatically.</p><p>Survivors keep their wounds and equipment between encounters. Reinforce the veterans you have, or recruit fresh troops before the next attack.</p></div>
+		<div class="crowns_units"><figure><div class="image_frame crowns_sprite" data-image="crowns-adrift-levy.webp"><img src="/static/images/crowns-adrift-levy.webp" alt="In-game levy carrying a pale round shield and spear" width="128" height="128" loading="lazy" decoding="async"></div><figcaption>Levies</figcaption></figure><figure><div class="image_frame crowns_sprite" data-image="crowns-adrift-commander.webp"><img src="/static/images/crowns-adrift-commander.webp" alt="In-game commander in bronze armour with a red crest" width="128" height="128" loading="lazy" decoding="async"></div><figcaption>Commanders</figcaption></figure><p class="crowns_art_note">Development art · subject to change</p></div>
+	</section>
+	<aside class="development_note crowns_status" aria-labelledby="crowns_status_title"><span class="status_dot"></span><div><h2 id="crowns_status_title">In development</h2><p>Crowns Adrift is in development for a paid Steam release. No release date has been announced.</p></div><a class="text_link" href="/#games"><span class="link_label">More from the studio</span>{% include "arrow.html" %}</a></aside>
+</main>
+{% endblock %}

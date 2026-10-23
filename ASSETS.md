@@ -55,3 +55,27 @@ https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.4/bundles/datastar.js.
 Its MIT license is included at `static/vendor/datastar-LICENSE.txt`. Update the
 pinned filename, embedded asset route, base template, and tests together when
 upgrading.
+
+## Crowns Adrift project page
+
+The expanded game page uses a second gameplay capture,
+`crowns-adrift-detail.webp`, from `../tribute/docs/art-study-zoom.png`. It shows
+the palace and riverbank with the live game interface.
+
+The following illustrations are lossless WebP conversions of the current in-game
+sprites under `../tribute/crates/client/assets/`:
+
+| Website asset                  | Source                  |
+| ------------------------------ | ----------------------- |
+| `crowns-adrift-fields.webp`    | `buildings/fields.png`  |
+| `crowns-adrift-granary.webp`   | `buildings/granary.png` |
+| `crowns-adrift-foundry.webp`   | `buildings/foundry.png` |
+| `crowns-adrift-levy.webp`      | `units/levy.png`        |
+| `crowns-adrift-commander.webp` | `units/commander.png`   |
+
+These are renders of the project's authored low-poly models, rather than the
+historical pixel-art sheets retained in that repository. The original sprite
+source records are `assets/buildings/SOURCE.txt` and `assets/units/SOURCE.txt`
+relative to the game client. Each illustration and the second gameplay capture
+has a matching 64-pixel loading preview. The page labels the images as
+in-development artwork.

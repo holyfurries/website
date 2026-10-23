@@ -50,6 +50,12 @@ async fn public_pages_links_metadata_and_assets() {
             "{path}"
         );
         assert!(!html.contains("TODO"), "{path}");
+        if path == "/games/crowns-adrift" {
+            assert!(html.contains("id=\"how-it-plays\""));
+            assert!(html.contains("crowns-adrift-foundry.webp"));
+            assert!(html.contains("paid Steam release"));
+            assert!(!html.contains("store.steampowered.com/app/"));
+        }
         if path == "/tools/spice-cad" {
             assert!(html.contains("href=\"https://github.com/holyfurries/spice-cad\""));
             assert!(!html.contains("no public download"));
@@ -73,6 +79,36 @@ async fn public_pages_links_metadata_and_assets() {
     for (path, mime) in [
         ("/static/images/studio-social.png", "image/png"),
         ("/static/images/crowns-adrift-island.webp", "image/webp"),
+        ("/static/images/crowns-adrift-detail.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-detail-preview.webp",
+            "image/webp",
+        ),
+        ("/static/images/crowns-adrift-fields.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-fields-preview.webp",
+            "image/webp",
+        ),
+        ("/static/images/crowns-adrift-granary.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-granary-preview.webp",
+            "image/webp",
+        ),
+        ("/static/images/crowns-adrift-foundry.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-foundry-preview.webp",
+            "image/webp",
+        ),
+        ("/static/images/crowns-adrift-levy.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-levy-preview.webp",
+            "image/webp",
+        ),
+        ("/static/images/crowns-adrift-commander.webp", "image/webp"),
+        (
+            "/static/images/crowns-adrift-commander-preview.webp",
+            "image/webp",
+        ),
         ("/static/images/cold-orbit-flight.webp", "image/webp"),
         ("/static/images/spice-cad-editor.webp", "image/webp"),
         (

@@ -485,6 +485,24 @@
     [data-image="spice-cad-editor.webp"] {
         --image-preview: url("/static/images/spice-cad-editor-preview.webp");
     }
+    [data-image="crowns-adrift-detail.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-detail-preview.webp");
+    }
+    [data-image="crowns-adrift-fields.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-fields-preview.webp");
+    }
+    [data-image="crowns-adrift-granary.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-granary-preview.webp");
+    }
+    [data-image="crowns-adrift-foundry.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-foundry-preview.webp");
+    }
+    [data-image="crowns-adrift-levy.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-levy-preview.webp");
+    }
+    [data-image="crowns-adrift-commander.webp"] {
+        --image-preview: url("/static/images/crowns-adrift-commander-preview.webp");
+    }
     .hero_emblem {
         position: relative;
         aspect-ratio: 1;
@@ -780,6 +798,104 @@
         font-size: var(--type-small);
         color: var(--muted);
     }
+
+    .crowns_intro_link {
+        margin-top: var(--space-m);
+    }
+    .crowns_section {
+        padding-block: var(--space-2xl);
+        border-top: 0.0625rem solid var(--line);
+    }
+    .crowns_page > .project_image {
+        margin-bottom: var(--space-2xl);
+    }
+    .crowns_page h3 {
+        font-size: var(--type-card);
+        margin-block: var(--space-s);
+    }
+    .crowns_buildings p,
+    .crowns_land > div > p:not(.eyebrow) {
+        color: var(--muted);
+    }
+    .crowns_land {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+        align-items: center;
+        gap: var(--space-xl);
+    }
+    .crowns_land h2,
+    .crowns_army h2 {
+        margin-block: var(--space-s) var(--space-m);
+    }
+    .crowns_land > div > p + p,
+    .crowns_army > div > p + p {
+        margin-top: var(--space-s);
+    }
+    .crowns_buildings {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+        gap: var(--space-s);
+    }
+    .crowns_buildings article {
+        background: var(--surface);
+        padding: var(--space-m);
+    }
+    .crowns_sprite {
+        --image-backdrop: transparent;
+        --image-fit: contain;
+        width: min(100%, 8rem);
+        aspect-ratio: 1;
+    }
+    .crowns_sprite > img {
+        width: 100%;
+    }
+    .crowns_sprite:not([data-image-state="loading"]):not(
+        [data-image-state="failed"]
+    )::before {
+        background-image: none;
+    }
+    .crowns_army {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+        align-items: center;
+        gap: var(--space-xl);
+        padding-inline: var(--space-l);
+        background: var(--forest);
+        color: var(--paper);
+    }
+    .crowns_army .eyebrow,
+    .crowns_army > div > p:not(.eyebrow),
+    .crowns_art_note {
+        color: var(--forest-muted);
+    }
+    .crowns_units {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+        gap: var(--space-s);
+        text-align: center;
+    }
+    .crowns_units .crowns_sprite {
+        margin-inline: auto;
+    }
+    .crowns_units figcaption {
+        margin-top: var(--space-xs);
+        font-size: var(--type-meta);
+    }
+    .crowns_art_note {
+        grid-column: 1 / -1;
+        justify-self: center;
+        border-top: 0.0625rem solid
+            color-mix(in oklch, var(--forest-muted) 25%, transparent);
+        padding-top: var(--space-xs);
+        margin-top: var(--space-xs);
+        font-size: var(--type-meta);
+        font-style: italic;
+    }
+    .crowns_status {
+        margin-top: var(--space-2xl);
+    }
+
     .development_note {
         display: flex;
         align-items: center;
