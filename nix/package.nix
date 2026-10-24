@@ -18,6 +18,7 @@ let
       fileset = lib.fileset.unions [
         ../Cargo.toml
         ../Cargo.lock
+        ../build.rs
         ../src
         ../templates
         ../static

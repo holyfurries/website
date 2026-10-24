@@ -33,7 +33,11 @@ tokio-stream = { version = "0.1", features = ["sync"] }
 tokio-util = { version = "0.7", features = ["rt"] }
 tower-http = { version = "0.6", features = ["compression-gzip", "set-header"] }
 
+[build-dependencies]
+sha2 = "0.10"
+
 [dev-dependencies]
+sha2 = "0.10"
 tower = { version = "0.5", features = ["util"] }
 http-body-util = "0.1"
 libc = "0.2"

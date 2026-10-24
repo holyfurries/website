@@ -27,6 +27,7 @@ async fn public_pages_links_metadata_and_assets() {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK, "{path}");
+        assert_eq!(response.headers()[header::CACHE_CONTROL], "no-cache");
         let policy = response.headers()[header::CONTENT_SECURITY_POLICY]
             .to_str()
             .unwrap();
@@ -94,13 +95,19 @@ async fn public_pages_links_metadata_and_assets() {
         .unwrap();
         if let Some(nonce) = nonce {
             assert!(html.contains(&format!("data-nonce=\"{nonce}\"")));
-            assert!(html.contains("/static/vendor/datastar-1.0.4.js?v=2"));
+            assert!(html.contains(assets::url("vendor/datastar-1.0.4.js")));
         } else {
             assert!(!html.contains("datastar-1.0.4.js"));
         }
         assert!(html.contains("<h1"), "{path}");
         assert!(html.contains("rel=\"canonical\""), "{path}");
-        assert!(html.contains("property=\"og:image\" content=\"https://holyfurries.com/static/images/studio-social.png\""), "{path}");
+        assert!(
+            html.contains(&format!(
+                "property=\"og:image\" content=\"https://holyfurries.com{}\"",
+                assets::url("images/studio-social.png")
+            )),
+            "{path}"
+        );
         assert!(
             html.contains("name=\"twitter:card\" content=\"summary_large_image\""),
             "{path}"
@@ -135,6 +142,7 @@ async fn public_pages_links_metadata_and_assets() {
         for destination in html
             .split("href=\"")
             .skip(1)
+            .chain(html.split("src=\"").skip(1))
             .filter_map(|part| part.split('"').next())
         {
             if destination.starts_with('/') {
@@ -148,71 +156,68 @@ async fn public_pages_links_metadata_and_assets() {
             }
         }
     }
-    for (path, mime) in [
-        ("/static/images/studio-social.png", "image/png"),
-        ("/static/images/crowns-adrift-island.webp", "image/webp"),
-        ("/static/images/crowns-adrift-detail.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-detail-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/crowns-adrift-fields.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-fields-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/crowns-adrift-granary.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-granary-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/crowns-adrift-foundry.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-foundry-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/crowns-adrift-levy.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-levy-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/crowns-adrift-commander.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-commander-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/cold-orbit-flight.webp", "image/webp"),
-        ("/static/images/spice-cad-editor.webp", "image/webp"),
-        (
-            "/static/images/crowns-adrift-island-preview.webp",
-            "image/webp",
-        ),
-        (
-            "/static/images/cold-orbit-flight-preview.webp",
-            "image/webp",
-        ),
-        ("/static/images/spice-cad-editor-preview.webp", "image/webp"),
-        ("/static/images.js", "text/javascript; charset=utf-8"),
-        ("/static/navigation.js", "text/javascript; charset=utf-8"),
-        (
-            "/static/vendor/datastar-1.0.4.js",
-            "text/javascript; charset=utf-8",
-        ),
-        ("/sitemap.xml", "application/xml"),
-    ] {
+    for asset in assets::ASSETS {
+        use sha2::{Digest, Sha256};
         let response = app
             .clone()
-            .oneshot(Request::builder().uri(path).body(Body::empty()).unwrap())
+            .oneshot(Request::get(asset.url).body(Body::empty()).unwrap())
             .await
             .unwrap();
-        assert_eq!(response.status(), StatusCode::OK);
-        assert_eq!(response.headers()[header::CONTENT_TYPE], mime);
+        assert_eq!(response.status(), StatusCode::OK, "{}", asset.url);
+        assert_eq!(response.headers()[header::CONTENT_TYPE], asset.content_type);
+        assert_eq!(
+            response.headers()[header::CACHE_CONTROL],
+            "public, max-age=31536000, immutable"
+        );
+        let bytes = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(
+            asset.url,
+            format!("/static/{:x}/{}", Sha256::digest(&bytes), asset.path)
+        );
+        let stale_url = asset.url.replacen("/static/", "/static/invalid", 1);
+        let response = app
+            .clone()
+            .oneshot(Request::get(stale_url).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
     }
+    let css = assets::ASSETS
+        .iter()
+        .find(|asset| asset.path == "site.css")
+        .unwrap();
+    let css = std::str::from_utf8(css.bytes).unwrap();
+    for preview in assets::ASSETS
+        .iter()
+        .filter(|asset| asset.path.ends_with("-preview.webp"))
+    {
+        assert!(css.contains(preview.url));
+        assert!(!css.contains(&format!("/static/{}", preview.path)));
+    }
+    let response = app
+        .clone()
+        .oneshot(Request::get("/missing").body(Body::empty()).unwrap())
+        .await
+        .unwrap();
+    assert_eq!(response.headers()[header::CACHE_CONTROL], "no-cache");
+    let html = String::from_utf8(
+        response
+            .into_body()
+            .collect()
+            .await
+            .unwrap()
+            .to_bytes()
+            .to_vec(),
+    )
+    .unwrap();
+    assert!(html.contains(assets::url("site.css")));
     for path in [
         "/missing",
         "/games/no-such-game",
         "/static/../Cargo.toml",
         "/static/missing",
+        "/static/site.css",
     ] {
         let response = app
             .clone()

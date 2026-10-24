@@ -2,6 +2,8 @@
     clippy::collapsible_if,
     reason = "Repository rules require explicit nested control flow"
 )]
+mod assets;
+
 use askama::Template;
 use axum::{
     Router,
@@ -132,12 +134,7 @@ fn router(state: AppState) -> Router {
                 )
             }),
         )
-        .fallback(|| async {
-            (
-                StatusCode::NOT_FOUND,
-                Html(include_str!("../templates/404.html")),
-            )
-        })
+        .fallback(|| async { not_found() })
         .layer(CompressionLayer::new())
         .layer(SetResponseHeaderLayer::if_not_present(
             header::X_CONTENT_TYPE_OPTIONS,
@@ -266,13 +263,7 @@ async fn game(Path(slug): Path<String>) -> Response {
                 ),
             ],
         },
-        _ => {
-            return (
-                StatusCode::NOT_FOUND,
-                Html(include_str!("../templates/404.html")),
-            )
-                .into_response();
-        }
+        _ => return not_found(),
     };
     render(project.render())
 }
@@ -427,158 +418,31 @@ fn shutdown() -> std::io::Result<impl Future<Output = ()>> {
     })
 }
 
+#[derive(Template)]
+#[template(path = "404.html")]
+struct NotFound;
+
+fn not_found() -> Response {
+    let mut response = render(NotFound.render());
+    if response.status() == StatusCode::OK {
+        *response.status_mut() = StatusCode::NOT_FOUND;
+    }
+    response
+}
+
 async fn asset(Path(path): Path<String>) -> Response {
-    let (content_type, bytes): (&str, &[u8]) = match path.as_str() {
-        "site.css" => (
-            "text/css; charset=utf-8",
-            include_bytes!("../static/site.css"),
-        ),
-        "mark.svg" => ("image/svg+xml", include_bytes!("../static/mark.svg")),
-        "favicon.svg" => ("image/svg+xml", include_bytes!("../static/favicon.svg")),
-        "images.js" => (
-            "text/javascript; charset=utf-8",
-            include_bytes!("../static/images.js"),
-        ),
-        "navigation.js" => (
-            "text/javascript; charset=utf-8",
-            include_bytes!("../static/navigation.js"),
-        ),
-        "vendor/datastar-1.0.4.js" => (
-            "text/javascript; charset=utf-8",
-            include_bytes!("../static/vendor/datastar-1.0.4.js"),
-        ),
-        "images/crowns-adrift-island-480.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-island-480.webp"),
-        ),
-        "images/crowns-adrift-island-800.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-island-800.webp"),
-        ),
-        "images/crowns-adrift-island-1200.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-island-1200.webp"),
-        ),
-        "images/crowns-adrift-detail-480.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-detail-480.webp"),
-        ),
-        "images/crowns-adrift-detail-800.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-detail-800.webp"),
-        ),
-        "images/crowns-adrift-detail-1200.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-detail-1200.webp"),
-        ),
-        "images/cold-orbit-flight-480.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/cold-orbit-flight-480.webp"),
-        ),
-        "images/cold-orbit-flight-800.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/cold-orbit-flight-800.webp"),
-        ),
-        "images/cold-orbit-flight-1200.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/cold-orbit-flight-1200.webp"),
-        ),
-        "images/spice-cad-editor-480.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/spice-cad-editor-480.webp"),
-        ),
-        "images/spice-cad-editor-800.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/spice-cad-editor-800.webp"),
-        ),
-        "images/spice-cad-editor-1200.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/spice-cad-editor-1200.webp"),
-        ),
-        "images/studio-social.png" => (
-            "image/png",
-            include_bytes!("../static/images/studio-social.png"),
-        ),
-        "images/crowns-adrift-island.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-island.webp"),
-        ),
-        "images/crowns-adrift-detail.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-detail.webp"),
-        ),
-        "images/crowns-adrift-detail-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-detail-preview.webp"),
-        ),
-        "images/crowns-adrift-fields.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-fields.webp"),
-        ),
-        "images/crowns-adrift-fields-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-fields-preview.webp"),
-        ),
-        "images/crowns-adrift-granary.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-granary.webp"),
-        ),
-        "images/crowns-adrift-granary-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-granary-preview.webp"),
-        ),
-        "images/crowns-adrift-foundry.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-foundry.webp"),
-        ),
-        "images/crowns-adrift-foundry-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-foundry-preview.webp"),
-        ),
-        "images/crowns-adrift-levy.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-levy.webp"),
-        ),
-        "images/crowns-adrift-levy-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-levy-preview.webp"),
-        ),
-        "images/crowns-adrift-commander.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-commander.webp"),
-        ),
-        "images/crowns-adrift-commander-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-commander-preview.webp"),
-        ),
-        "images/cold-orbit-flight.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/cold-orbit-flight.webp"),
-        ),
-        "images/spice-cad-editor.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/spice-cad-editor.webp"),
-        ),
-        "images/crowns-adrift-island-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/crowns-adrift-island-preview.webp"),
-        ),
-        "images/cold-orbit-flight-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/cold-orbit-flight-preview.webp"),
-        ),
-        "images/spice-cad-editor-preview.webp" => (
-            "image/webp",
-            include_bytes!("../static/images/spice-cad-editor-preview.webp"),
-        ),
-        _ => return StatusCode::NOT_FOUND.into_response(),
+    let Some(asset) = assets::ASSETS
+        .iter()
+        .find(|asset| asset.url.strip_prefix("/static/") == Some(path.as_str()))
+    else {
+        return (StatusCode::NOT_FOUND, [(header::CACHE_CONTROL, "no-store")]).into_response();
     };
     (
         [
-            (header::CONTENT_TYPE, content_type),
-            (header::CACHE_CONTROL, "public, max-age=3600"),
+            (header::CONTENT_TYPE, asset.content_type),
+            (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
         ],
-        bytes,
+        asset.bytes,
     )
         .into_response()
 }

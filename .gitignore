@@ -12,6 +12,7 @@
 
 !/flake.*
 !/Cargo.*
+!/build.rs
 !/rust-analyzer.toml
 !/deny.toml
 !/.cargo/config.toml

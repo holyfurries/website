@@ -12,6 +12,10 @@ their original licenses.
 
 ## Sources
 
+The Rust build generates SHA-256 URLs for all served assets, including image
+references inside CSS. Hashed URLs use a one-year immutable cache lifetime.
+Pages, including the 404 page, use the current build's generated URLs.
+
 The shared product splash and canonical studio branding live in
 [holyfurries/brand-assets](https://github.com/holyfurries/brand-assets). The
 website keeps local copies of the mark and favicon for serving its pages. The

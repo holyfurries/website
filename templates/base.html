@@ -11,23 +11,23 @@
 		<meta property="og:description" content="{% block social_description %}Independent games, Schedule I mods, and software tools.{% endblock %}">
 		<meta property="og:type" content="website">
 		<meta property="og:site_name" content="Holy Furries Studio">
-		<meta property="og:image" content="https://holyfurries.com/static/images/studio-social.png">
+		<meta property="og:image" content="https://holyfurries.com{{ crate::assets::url("images/studio-social.png") }}">
 		<meta property="og:image:type" content="image/png">
 		<meta property="og:image:width" content="1200">
 		<meta property="og:image:height" content="630">
 		<meta property="og:image:alt" content="Holy Furries Studio fox and halo logo with the studio wordmark">
 		<meta name="twitter:card" content="summary_large_image">
-		<meta name="twitter:image" content="https://holyfurries.com/static/images/studio-social.png">
+		<meta name="twitter:image" content="https://holyfurries.com{{ crate::assets::url("images/studio-social.png") }}">
 		<meta name="twitter:image:alt" content="Holy Furries Studio fox and halo logo with the studio wordmark">
-		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml" sizes="any">
-		<link rel="stylesheet" href="/static/site.css?v=26">
-		<script type="module" src="/static/images.js?v=1"></script>
-		<script type="module" src="/static/navigation.js?v=1"></script>
+		<link rel="icon" href="{{ crate::assets::url("favicon.svg") }}" type="image/svg+xml" sizes="any">
+		<link rel="stylesheet" href="{{ crate::assets::url("site.css") }}">
+		<script type="module" src="{{ crate::assets::url("images.js") }}"></script>
+		<script type="module" src="{{ crate::assets::url("navigation.js") }}"></script>
 	</head>
 	<body id="top">
 		<a class="skip" href="#main">Skip to content</a>
 		<header class="site_header"><div class="header_inner wrap">
-			<a class="brand" href="/#top" aria-label="Holy Furries Studio home"><img src="/static/mark.svg" width="48" height="48" alt=""><span>holy furries <span class="brand_suffix">STUDIO</span></span></a>
+			<a class="brand" href="/#top" aria-label="Holy Furries Studio home"><img src="{{ crate::assets::url("mark.svg") }}" width="48" height="48" alt=""><span>holy furries <span class="brand_suffix">STUDIO</span></span></a>
 			<nav aria-label="Main navigation"><a href="/#games">Games</a><a href="/#mods">Mods</a><a href="/#tools">Tools</a><a class="nav_studio" href="/#studio"><span class="link_label">The studio</span>{% include "arrow.html" %}</a></nav>
 		</div></header>
 		{% block content %}{% endblock %}
