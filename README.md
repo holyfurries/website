@@ -146,15 +146,39 @@ package. Review the dry activation before switching. To return to the previous
 NixOS generation, use `sudo nixos-rebuild switch --rollback`; automatic release
 profiles have their own rollback described above.
 
-`ops/` manages the site's Cloudflare DNS records and HTTPS redirect. Supply
-`TF_VAR_zone_id` and `CLOUDFLARE_API_TOKEN` through the environment or a secret
-manager. Validate changes with:
+`ops/` manages the Holy Furries zone's DNS records, DNSSEC, redirects, TLS, and
+caching. HTTP redirects to HTTPS, and `www` redirects permanently to
+`holyfurries.com` while preserving paths and query strings. The TLS minimum is
+1.2. HSTS lasts 30 days, with `includeSubDomains` and preload disabled.
+Cloudflare adds the policy to HTTPS responses, including redirects. Only static
+GET and HEAD responses are eligible for caching. Edge and browser lifetimes
+follow the origin headers, currently one hour for assets. Cache keys retain
+query strings so versioned CSS and scripts stay distinct. Pages, live mod
+updates, and health checks bypass the edge cache. Supply `TF_VAR_zone_id` and
+`CLOUDFLARE_API_TOKEN` through the environment or a secret manager. Validate
+changes with:
 
 ```console
 tofu -chdir=ops init -backend=false
 tofu -chdir=ops validate
 tofu -chdir=ops test
 ```
+
+The token needs DNS edit, Zone Settings edit, Single Redirect edit, and Cache
+Rules edit permissions for the Holy Furries zone. Before the first plan, inspect
+existing redirect and cache phase rulesets in Cloudflare. If present, import
+them into `cloudflare_ruleset.redirects` and `cloudflare_ruleset.cache` using
+`zones/<zone_id>/<ruleset_id>`, and reconcile their rules before applying.
+Import existing DNSSEC settings into `cloudflare_zone_dnssec.website` using the
+zone ID. Review `tofu -chdir=ops plan` before applying.
+
+Holy Furries uses Cloudflare Registrar, which publishes the DS record
+automatically after DNSSEC is enabled. This can take one to two days. Inspect
+the expected record with `tofu -chdir=ops output -raw dnssec_ds_record` and
+verify the parent DS record and signed DNS responses before considering DNSSEC
+complete. For rollback, disable DNSSEC at the registrar and wait for the parent
+DS record to expire before disabling zone signing. The DNSSEC resource prevents
+accidental destruction.
 
 Terraform state, plans, local credentials, and validation artifacts are ignored
 by Git.
