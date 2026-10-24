@@ -70,7 +70,7 @@ jobs:
           path: dist
       - name: Import and run the release on a fresh runner
         run: |
-          nix shell --inputs-from . nixpkgs#gnutar nixpkgs#gzip nixpkgs#coreutils nixpkgs#curl --command bash -euo pipefail <<'BASH'
+          nix shell --inputs-from . nixpkgs#gnutar nixpkgs#gzip nixpkgs#coreutils nixpkgs#curl nixpkgs#gnused --command bash -euo pipefail <<'BASH'
             cd dist
             task_archive="holyfurries-$TARGET_SYSTEM.tar.gz"
             sha256sum --check "$task_archive.sha256"
@@ -88,8 +88,10 @@ jobs:
             LISTEN_ADDRESS=127.0.0.1:8080 "$task_package/bin/holyfurries" > "$RUNNER_TEMP/website.log" 2>&1 &
             task_pids+=("$!")
             curl --fail --silent --show-error --retry 10 --retry-delay 1 --retry-connrefused --max-time 2 http://127.0.0.1:8080/healthz
-            curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/ --output /dev/null
-            curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/static/images.js --output /dev/null
+            curl --fail --silent --show-error --max-time 5 http://127.0.0.1:8080/ --output "$RUNNER_TEMP/home.html"
+            task_image_script=$(sed -n 's/.*src="\(\/static\/[a-f0-9]\{64\}\/images\.js\)".*/\1/p' "$RUNNER_TEMP/home.html")
+            test -n "$task_image_script"
+            curl --fail --silent --show-error --max-time 5 "http://127.0.0.1:8080$task_image_script" --output /dev/null
           BASH
   publish:
     needs: verify

@@ -157,11 +157,10 @@ caching. HTTP redirects to HTTPS, and `www` redirects permanently to
 1.2. HSTS lasts 30 days, with `includeSubDomains` and preload disabled.
 Cloudflare adds the policy to HTTPS responses, including redirects. Only static
 GET and HEAD responses are eligible for caching. Edge and browser lifetimes
-follow the origin headers, currently one hour for assets. Cache keys retain
-query strings so versioned CSS and scripts stay distinct. Pages, live mod
-updates, and health checks bypass the edge cache. Supply `TF_VAR_zone_id` and
-`CLOUDFLARE_API_TOKEN` through the environment or a secret manager. Validate
-changes with:
+follow the origin headers: content-hashed assets use a one-year immutable
+lifetime. Pages, live mod updates, and health checks bypass the edge cache.
+Supply `TF_VAR_zone_id` and `CLOUDFLARE_API_TOKEN` through the environment or a
+secret manager. Validate changes with:
 
 ```console
 tofu -chdir=ops init -backend=false
