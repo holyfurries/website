@@ -27,10 +27,32 @@ async fn public_pages_links_metadata_and_assets() {
             .await
             .unwrap();
         assert_eq!(response.status(), StatusCode::OK, "{path}");
+        let policy = response.headers()[header::CONTENT_SECURITY_POLICY]
+            .to_str()
+            .unwrap();
+        let script_sources = policy
+            .split(';')
+            .map(str::trim)
+            .find(|directive| directive.starts_with("script-src "))
+            .unwrap()
+            .split_whitespace()
+            .collect::<Vec<_>>();
+        assert_eq!(
+            script_sources,
+            [
+                "script-src",
+                "'self'",
+                "'unsafe-eval'",
+                "https://static.cloudflareinsights.com/beacon.min.js",
+                "https://static.cloudflareinsights.com/beacon.min.js/",
+            ],
+            "{path}: only the studio and Cloudflare beacon may supply scripts"
+        );
         assert!(
-            response
-                .headers()
-                .contains_key(header::CONTENT_SECURITY_POLICY)
+            policy
+                .split(';')
+                .any(|directive| directive.trim() == "connect-src 'self'"),
+            "{path}: telemetry and live updates must stay same-origin"
         );
         let html = String::from_utf8(
             response
