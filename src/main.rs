@@ -229,7 +229,7 @@ struct Project {
     category: &'static str,
     tagline: &'static str,
     description: &'static str,
-    image: &'static str,
+    image_stem: &'static str,
     image_width: u32,
     image_height: u32,
     image_description: &'static str,
@@ -246,7 +246,7 @@ async fn game(Path(slug): Path<String>) -> Response {
             category: "Ship-building sandbox · In development",
             tagline: "Build and fly your own ship.",
             description: "A top-down ship-building sandbox. Assemble a ship in the editor, launch it into space, and manage its systems and crew.",
-            image: "cold-orbit-flight.webp",
+            image_stem: "cold-orbit-flight",
             image_width: 1413,
             image_height: 1004,
             image_description: "Cold Orbit development screenshot: a custom white spacecraft under thrust",
@@ -282,7 +282,7 @@ async fn tool() -> Response {
         path: "tools/spice-cad", name: "Spice CAD", category: "Desktop CAD modeler · In development",
         tagline: "A desktop CAD modeler for scripted designs.",
         description: "Write models in Luau and inspect the resulting geometry in a native Rust application. The project began as a parametric spice-rack model.",
-        image: "spice-cad-editor.webp", image_width: 1700, image_height: 1050,
+        image_stem: "spice-cad-editor", image_width: 1700, image_height: 1050,
         image_description: "Spice CAD showing typed Luau code, a rounded cube, and size and corner-radius controls",
         repository: Some("https://github.com/holyfurries/spice-cad"),
         features: [("Luau editor", "An integrated Luau editor keeps your construction logic alongside the resulting model."), ("3D viewport", "Orbit the viewport, select geometry, and inspect dimensions in the native desktop interface."), ("Parametric parts", "The original spice-rack model uses dimensions for the cabinet, jars, and printable parts.")],
@@ -446,6 +446,54 @@ async fn asset(Path(path): Path<String>) -> Response {
         "vendor/datastar-1.0.4.js" => (
             "text/javascript; charset=utf-8",
             include_bytes!("../static/vendor/datastar-1.0.4.js"),
+        ),
+        "images/crowns-adrift-island-480.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-island-480.webp"),
+        ),
+        "images/crowns-adrift-island-800.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-island-800.webp"),
+        ),
+        "images/crowns-adrift-island-1200.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-island-1200.webp"),
+        ),
+        "images/crowns-adrift-detail-480.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-detail-480.webp"),
+        ),
+        "images/crowns-adrift-detail-800.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-detail-800.webp"),
+        ),
+        "images/crowns-adrift-detail-1200.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/crowns-adrift-detail-1200.webp"),
+        ),
+        "images/cold-orbit-flight-480.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/cold-orbit-flight-480.webp"),
+        ),
+        "images/cold-orbit-flight-800.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/cold-orbit-flight-800.webp"),
+        ),
+        "images/cold-orbit-flight-1200.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/cold-orbit-flight-1200.webp"),
+        ),
+        "images/spice-cad-editor-480.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/spice-cad-editor-480.webp"),
+        ),
+        "images/spice-cad-editor-800.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/spice-cad-editor-800.webp"),
+        ),
+        "images/spice-cad-editor-1200.webp" => (
+            "image/webp",
+            include_bytes!("../static/images/spice-cad-editor-1200.webp"),
         ),
         "images/studio-social.png" => (
             "image/png",

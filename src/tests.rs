@@ -116,6 +116,22 @@ async fn public_pages_links_metadata_and_assets() {
             assert!(html.contains("href=\"https://github.com/holyfurries/spice-cad\""));
             assert!(!html.contains("no public download"));
         }
+        for sources in html.split("srcset=\"").skip(1) {
+            for candidate in sources.split('"').next().unwrap().split(',') {
+                let mut parts = candidate.split_whitespace();
+                let target = parts.next().unwrap();
+                let width = parts.next().unwrap().strip_suffix('w').unwrap();
+                assert!(width.parse::<u32>().unwrap() > 0);
+                assert!(parts.next().is_none());
+                let response = app
+                    .clone()
+                    .oneshot(Request::get(target).body(Body::empty()).unwrap())
+                    .await
+                    .unwrap();
+                assert_eq!(response.status(), StatusCode::OK, "{path} -> {target}");
+                assert_eq!(response.headers()[header::CONTENT_TYPE], "image/webp");
+            }
+        }
         for destination in html
             .split("href=\"")
             .skip(1)

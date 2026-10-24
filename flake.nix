@@ -36,15 +36,23 @@
           };
           crane_lib = (inputs.crane.mkLib pkgs).overrideToolchain rust_toolchain;
           datastar = pkgs.callPackage ./nix/datastar.nix { };
+          image_variants = pkgs.callPackage ./nix/image-variants.nix { };
           package = pkgs.callPackage ./nix/package.nix { inherit crane_lib; };
         in
         {
           packages.default = package;
           packages.datastar = datastar;
+          packages.image-variants = image_variants;
           checks = {
             service = package;
             datastar = pkgs.runCommand "check-datastar" { } ''
               cmp ${datastar}/datastar.js ${./static/vendor/datastar-1.0.4.js}
+              touch "$out"
+            '';
+            image-variants = pkgs.runCommand "check-image-variants" { } ''
+              for image in ${image_variants}/*.webp; do
+                cmp "$image" ${./static/images}/"$(basename "$image")"
+              done
               touch "$out"
             '';
           }

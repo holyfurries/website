@@ -50,6 +50,13 @@ fades in decoded images and retains the preview if loading fails. Full images
 remain visible when JavaScript is disabled. Image dimensions reserve layout
 space on both the homepage and project pages.
 
+Screenshots also have 480, 800, and 1200-pixel-wide WebP variants. `srcset` lets
+the browser choose a size for the displayed width and pixel density, retaining
+the full-size image for larger screens. Lazy images use `sizes="auto"` with a
+viewport-based fallback. Generate the variants with
+`nix build .#image-variants`, then copy `result/*.webp` to `static/images/`. The
+flake checks that these generated files match their sources.
+
 Datastar 1.0.4 is built from the pinned upstream source by `nix/datastar.nix`.
 The bundle includes fetch actions, `data-init`, and element patching. Its MIT
 license is included at `static/vendor/datastar-LICENSE.txt`. Rebuild the

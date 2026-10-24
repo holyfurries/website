@@ -114,6 +114,50 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                 assert_eq!(motion["duration"], "0.14s");
             }
             if !reduced {
+                request(
+                    &client,
+                    Method::POST,
+                    &format!("{session}/window/rect"),
+                    json!({"width":480,"height":900}),
+                )
+                .await;
+                for route in [
+                    "/",
+                    "/games/crowns-adrift",
+                    "/games/cold-orbit",
+                    "/tools/spice-cad",
+                ] {
+                    request(
+                        &client,
+                        Method::POST,
+                        &format!("{session}/url"),
+                        json!({"url":format!("{website}{route}")}),
+                    )
+                    .await;
+                    wait(
+                        &client,
+                        &session,
+                        r#"
+                        const image = document.querySelector('.image_frame img');
+                        return image.complete && image.naturalWidth > 0;
+                    "#,
+                    )
+                    .await;
+                    let smaller = script(
+                        &client,
+                        &session,
+                        r#"
+                        const image = document.querySelector('.image_frame img');
+                        return /-(480|800)\.webp$/.test(image.currentSrc);
+                    "#,
+                        json!([]),
+                    )
+                    .await;
+                    assert_eq!(
+                        smaller, true,
+                        "{engine}: mobile screenshot on {route} uses a smaller source"
+                    );
+                }
                 for route in [
                     "/",
                     "/games/crowns-adrift",
