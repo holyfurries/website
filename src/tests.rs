@@ -112,6 +112,21 @@ async fn public_pages_links_metadata_and_assets() {
             html.contains("name=\"twitter:card\" content=\"summary_large_image\""),
             "{path}"
         );
+        let description = html
+            .split("name=\"description\" content=\"")
+            .nth(1)
+            .unwrap()
+            .split('"')
+            .next()
+            .unwrap();
+        if path != "/" {
+            assert!(
+                html.contains(&format!(
+                    "property=\"og:description\" content=\"{description}\""
+                )),
+                "{path}: sharing uses the project description"
+            );
+        }
         assert!(!html.contains("TODO"), "{path}");
         if path == "/games/crowns-adrift" {
             assert!(html.contains("id=\"how-it-plays\""));
