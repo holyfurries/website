@@ -50,11 +50,11 @@ fades in decoded images and retains the preview if loading fails. Full images
 remain visible when JavaScript is disabled. Image dimensions reserve layout
 space on both the homepage and project pages.
 
-Datastar 1.0.4 is vendored from
-https://cdn.jsdelivr.net/gh/starfederation/datastar@v1.0.4/bundles/datastar.js.
-Its MIT license is included at `static/vendor/datastar-LICENSE.txt`. Update the
-pinned filename, embedded asset route, base template, and tests together when
-upgrading.
+Datastar 1.0.4 is built from the pinned upstream source by `nix/datastar.nix`.
+The bundle includes fetch actions, `data-init`, and element patching. Its MIT
+license is included at `static/vendor/datastar-LICENSE.txt`. Rebuild the
+vendored artifact with `nix build .#datastar`, then copy `result/datastar.js` to
+`static/vendor/datastar-1.0.4.js`. Keep this generated file unformatted.
 
 ## Crowns Adrift project page
 

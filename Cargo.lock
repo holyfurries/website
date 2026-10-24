@@ -618,6 +618,7 @@ dependencies = [
  "async-nats",
  "axum",
  "futures",
+ "getrandom 0.4.3",
  "http-body-util",
  "libc",
  "reqwest",

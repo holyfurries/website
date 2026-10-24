@@ -290,11 +290,38 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                 } else {
                     "9.8.8"
                 };
+                let focus = script(
+                    &client,
+                    &session,
+                    r#"
+                    const link = document.querySelector('#mod_ClearMinimap .mod_install');
+                    link.focus({preventScroll: true});
+                    window.catalog_focus_test = link;
+                    return !document.documentElement.hasAttribute('data-nonce');
+                "#,
+                    json!([]),
+                )
+                .await;
+                assert_eq!(
+                    focus, true,
+                    "{engine}: nonce mode must remove its initialization attribute"
+                );
                 nats.publish("holyfurries.catalog.release", serde_json::to_vec(&json!({
                     "package":"ClearMinimap", "version":version, "description":"Browser-tested minimap.", "downloads_total":42
                 })).unwrap().into()).await.unwrap();
                 nats.flush().await.unwrap();
                 wait(&client, &session, &format!("return document.querySelector('#mod_ClearMinimap').textContent.includes('v{version}') && document.querySelector('#mod_ClearMinimap').textContent.includes('Browser-tested minimap.') && document.querySelector('#mod_ClearMinimap').textContent.includes('42 downloads total')")).await;
+                let focus = script(
+                    &client,
+                    &session,
+                    "return document.activeElement === window.catalog_focus_test",
+                    json!([]),
+                )
+                .await;
+                assert_eq!(
+                    focus, true,
+                    "{engine}: live catalog updates preserve link focus"
+                );
                 for package in [
                     "CoordinatedPolice",
                     "CasinoLedger",

@@ -35,12 +35,18 @@
             ];
           };
           crane_lib = (inputs.crane.mkLib pkgs).overrideToolchain rust_toolchain;
+          datastar = pkgs.callPackage ./nix/datastar.nix { };
           package = pkgs.callPackage ./nix/package.nix { inherit crane_lib; };
         in
         {
           packages.default = package;
+          packages.datastar = datastar;
           checks = {
             service = package;
+            datastar = pkgs.runCommand "check-datastar" { } ''
+              cmp ${datastar}/datastar.js ${./static/vendor/datastar-1.0.4.js}
+              touch "$out"
+            '';
           }
           // pkgs.lib.optionalAttrs pkgs.stdenv.isLinux {
             browser = package.browserCheck;

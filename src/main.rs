@@ -117,19 +117,47 @@ fn router(state: AppState) -> Router {
         .route("/events", get(events))
         .route("/healthz", get(health))
         .route("/static/{*path}", get(asset))
-        .route("/robots.txt", get(|| async { "User-agent: *\nAllow: /\nSitemap: https://holyfurries.com/sitemap.xml\n" }))
-        .route("/sitemap.xml", get(|| async { ([(header::CONTENT_TYPE, "application/xml")], include_str!("../static/sitemap.xml")) }))
-        .fallback(|| async { (StatusCode::NOT_FOUND, Html(include_str!("../templates/404.html"))) })
+        .route(
+            "/robots.txt",
+            get(|| async {
+                "User-agent: *\nAllow: /\nSitemap: https://holyfurries.com/sitemap.xml\n"
+            }),
+        )
+        .route(
+            "/sitemap.xml",
+            get(|| async {
+                (
+                    [(header::CONTENT_TYPE, "application/xml")],
+                    include_str!("../static/sitemap.xml"),
+                )
+            }),
+        )
+        .fallback(|| async {
+            (
+                StatusCode::NOT_FOUND,
+                Html(include_str!("../templates/404.html")),
+            )
+        })
         .layer(CompressionLayer::new())
-        .layer(SetResponseHeaderLayer::if_not_present(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff")))
-        .layer(SetResponseHeaderLayer::if_not_present(header::REFERRER_POLICY, HeaderValue::from_static("strict-origin-when-cross-origin")))
-        .layer(SetResponseHeaderLayer::if_not_present(header::CONTENT_SECURITY_POLICY, HeaderValue::from_static("default-src 'self'; script-src 'self' 'unsafe-eval' https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'")))
+        .layer(SetResponseHeaderLayer::if_not_present(
+            header::X_CONTENT_TYPE_OPTIONS,
+            HeaderValue::from_static("nosniff"),
+        ))
+        .layer(SetResponseHeaderLayer::if_not_present(
+            header::REFERRER_POLICY,
+            HeaderValue::from_static("strict-origin-when-cross-origin"),
+        ))
+        .layer(SetResponseHeaderLayer::if_not_present(
+            header::CONTENT_SECURITY_POLICY,
+            content_security_policy(None),
+        ))
         .with_state(state)
 }
 
 #[derive(Template)]
 #[template(path = "home.html")]
 struct Home<'a> {
+    nonce: &'a str,
     mods: &'a [catalog::Mod],
     releases: &'a [Release],
 }
@@ -142,13 +170,37 @@ struct Mods<'a> {
 }
 
 async fn home(State(state): State<AppState>) -> Response {
-    render(
+    let mut random = [0_u8; 16];
+    if let Err(error) = getrandom::fill(&mut random) {
+        eprintln!("Template: secure nonce unavailable: {error}");
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            "The page could not be loaded.",
+        )
+            .into_response();
+    }
+    let nonce: String = random.iter().map(|byte| format!("{byte:02x}")).collect();
+    let mut response = render(
         Home {
+            nonce: &nonce,
             mods: &MODS,
             releases: &state.releases.borrow(),
         }
         .render(),
-    )
+    );
+    response.headers_mut().insert(
+        header::CONTENT_SECURITY_POLICY,
+        content_security_policy(Some(&nonce)),
+    );
+    response
+}
+
+fn content_security_policy(nonce: Option<&str>) -> HeaderValue {
+    let nonce = nonce
+        .map(|value| format!(" 'nonce-{value}'"))
+        .unwrap_or_default();
+    HeaderValue::from_str(&format!("default-src 'self'; script-src 'self'{nonce} https://static.cloudflareinsights.com/beacon.min.js https://static.cloudflareinsights.com/beacon.min.js/; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'"))
+        .expect("static policy and hexadecimal nonce form a valid header")
 }
 
 fn render(result: Result<String, askama::Error>) -> Response {

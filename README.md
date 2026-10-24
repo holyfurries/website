@@ -10,6 +10,11 @@ versions refresh every 30 minutes. Failed requests retain the current metadata;
 written descriptions remain the fallback before the first successful fetch.
 Pages and install links work without browser JavaScript.
 
+Datastar loads only on the homepage. Its pinned Nix build includes fetch,
+initialization, and element patching. Each homepage response uses a fresh
+cryptographic nonce for Datastar's CSP mode, so dynamic JavaScript evaluation is
+disabled. The browser removes the nonce attribute after initialization.
+
 ## Run
 
 Enter the development shell in each terminal:

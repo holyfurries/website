@@ -37,17 +37,45 @@ async fn public_pages_links_metadata_and_assets() {
             .unwrap()
             .split_whitespace()
             .collect::<Vec<_>>();
+        let nonce = script_sources
+            .iter()
+            .find_map(|source| {
+                source
+                    .strip_prefix("'nonce-")
+                    .and_then(|value| value.strip_suffix('\''))
+            })
+            .map(str::to_owned);
+        assert!(!policy.contains("unsafe-eval"));
         assert_eq!(
-            script_sources,
+            script_sources
+                .iter()
+                .copied()
+                .filter(|source| !source.starts_with("'nonce-"))
+                .collect::<Vec<_>>(),
             [
                 "script-src",
                 "'self'",
-                "'unsafe-eval'",
                 "https://static.cloudflareinsights.com/beacon.min.js",
                 "https://static.cloudflareinsights.com/beacon.min.js/",
             ],
             "{path}: only the studio and Cloudflare beacon may supply scripts"
         );
+        if path == "/" {
+            let value = nonce.as_ref().unwrap();
+            assert_eq!(value.len(), 32);
+            assert!(value.bytes().all(|byte| byte.is_ascii_hexdigit()));
+            let another = app
+                .clone()
+                .oneshot(Request::get("/").body(Body::empty()).unwrap())
+                .await
+                .unwrap();
+            assert_ne!(
+                response.headers()[header::CONTENT_SECURITY_POLICY],
+                another.headers()[header::CONTENT_SECURITY_POLICY]
+            );
+        } else {
+            assert!(nonce.is_none());
+        }
         assert!(
             policy
                 .split(';')
@@ -64,6 +92,12 @@ async fn public_pages_links_metadata_and_assets() {
                 .to_vec(),
         )
         .unwrap();
+        if let Some(nonce) = nonce {
+            assert!(html.contains(&format!("data-nonce=\"{nonce}\"")));
+            assert!(html.contains("/static/vendor/datastar-1.0.4.js?v=2"));
+        } else {
+            assert!(!html.contains("datastar-1.0.4.js"));
+        }
         assert!(html.contains("<h1"), "{path}");
         assert!(html.contains("rel=\"canonical\""), "{path}");
         assert!(html.contains("property=\"og:image\" content=\"https://holyfurries.com/static/images/studio-social.png\""), "{path}");

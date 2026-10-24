@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% block nonce %}{{ nonce }}{% endblock %}
 {% block content %}
 <main id="main">
+	<script type="module" src="/static/vendor/datastar-1.0.4.js?v=2"></script>
 	<section class="hero wrap" aria-labelledby="hero_title">
 		<div class="hero_top"><p class="eyebrow"><span class="status_dot"></span>
 		INDEPENDENT GAME &amp; SOFTWARE STUDIO</p><span class="eyebrow hero_index">GAMES / MODS / TOOLS</span></div>
