@@ -12,10 +12,13 @@ copies live under `static/`; project images live in `static/images/`.
 
 | Image                       | Source                                                    |
 | --------------------------- | --------------------------------------------------------- |
-| `crowns-adrift-island.webp` | `../tribute/docs/art-study-board.png`                     |
-| `crowns-adrift-detail.webp` | `../tribute/docs/art-study-zoom.png`                      |
+| `crowns-adrift-island.webp` | Current client, seed 1, `build 3` capture                 |
+| `crowns-adrift-detail.webp` | Current client, seed 1, `city 7` capture                  |
 | `cold-orbit-flight.webp`    | `../space-game/assets/contrast-lighting-burn-preview.png` |
 | `spice-cad-editor.webp`     | `../spice-rack/docs/images/workspace.png`                 |
+
+Crowns captures use `../tribute/scripts/shot.sh` at revision `1f29de6`. The
+detail is a `1600x900+550+500` crop of a 3200 × 1800 capture.
 
 Crowns illustrations use lossless WebP conversions from
 `../tribute/crates/client/assets/`: `buildings/{fields,granary,foundry}.png` and
