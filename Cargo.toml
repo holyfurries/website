@@ -1,6 +1,6 @@
 [package]
 name = "holyfurries"
-version = "0.1.12"
+version = "0.1.13"
 edition = "2024"
 default-run = "holyfurries"
 rust-version = "1.88"
