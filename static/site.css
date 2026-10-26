@@ -457,14 +457,6 @@
             monospace;
         color: var(--muted);
     }
-    .footer_dot {
-        font:
-            var(--type-fine) / 1.5 "Courier New",
-            monospace;
-        letter-spacing: 0;
-        color: var(--muted);
-        margin-left: var(--space-2xs);
-    }
 }
 @layer components {
     .image_frame {
