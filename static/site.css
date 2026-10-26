@@ -392,7 +392,7 @@
         border-top: 0.0625rem solid var(--line);
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
-        gap: var(--space-columns);
+        gap: var(--space-l) var(--space-columns);
     }
     .studio_section h2 {
         font-size: var(--type-studio);
@@ -411,6 +411,23 @@
     }
     .studio_copy .text_link {
         margin-top: var(--space-m);
+    }
+    .studio_tech {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+        gap: var(--space-m);
+        margin: 0;
+        padding-top: var(--space-l);
+        border-top: 0.0625rem solid var(--line);
+    }
+    .studio_tech dt {
+        font-weight: 600;
+    }
+    .studio_tech dd {
+        margin: var(--space-xs) 0 0;
+        color: var(--muted);
+        font-size: var(--type-small);
     }
     .site_footer {
         display: flex;
