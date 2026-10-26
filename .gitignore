@@ -35,9 +35,3 @@
 !/ops/tests/*.tftest.hcl
 !/ops/.terraform.lock.hcl
 !/ops/terraform.tfvars.example
-
-/target/
-/artifacts/
-/.direnv/
-/ops/.terraform/
-/result*
