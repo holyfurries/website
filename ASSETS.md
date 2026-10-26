@@ -17,7 +17,7 @@ copies live under `static/`; project images live in `static/images/`.
 | `cold-orbit-flight.webp`    | `../space-game/assets/contrast-lighting-burn-preview.png` |
 | `spice-cad-editor.webp`     | `../spice-rack/docs/images/workspace.png`                 |
 
-Crowns captures use `../tribute/scripts/shot.sh` at revision `1f29de6`. The
+Crowns captures use `../tribute/scripts/shot.sh` at revision `289cb82`. The
 detail is a `1600x900+550+500` crop of a 3200 × 1800 capture.
 
 Crowns illustrations use lossless WebP conversions from
