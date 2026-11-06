@@ -648,7 +648,7 @@ dependencies = [
 
 [[package]]
 name = "holyfurries"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "askama",
  "async-nats",
