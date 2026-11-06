@@ -8,7 +8,7 @@ use askama::Template;
 use axum::{
     Router,
     extract::{Path, State},
-    http::{HeaderValue, StatusCode, header},
+    http::{HeaderMap, HeaderValue, StatusCode, header},
     response::{
         Html, IntoResponse, Response, Sse,
         sse::{Event, KeepAlive},
@@ -118,7 +118,6 @@ fn router(state: AppState) -> Router {
         .route("/tools/spice-cad", get(tool))
         .route("/events", get(events))
         .route("/healthz", get(health))
-        .route("/static/{*path}", get(asset))
         .route(
             "/robots.txt",
             get(|| async {
@@ -136,6 +135,7 @@ fn router(state: AppState) -> Router {
         )
         .fallback(|| async { not_found() })
         .layer(CompressionLayer::new())
+        .route("/static/{*path}", get(asset))
         .layer(SetResponseHeaderLayer::if_not_present(
             header::X_CONTENT_TYPE_OPTIONS,
             HeaderValue::from_static("nosniff"),
@@ -430,21 +430,41 @@ fn not_found() -> Response {
     response
 }
 
-async fn asset(Path(path): Path<String>) -> Response {
+async fn asset(Path(path): Path<String>, headers: HeaderMap) -> Response {
     let Some(asset) = assets::ASSETS
         .iter()
         .find(|asset| asset.url.strip_prefix("/static/") == Some(path.as_str()))
     else {
         return (StatusCode::NOT_FOUND, [(header::CACHE_CONTROL, "no-store")]).into_response();
     };
-    (
+    let (bytes, encoding) = match asset.representation(&headers) {
+        Ok(representation) => representation,
+        Err(status) => {
+            return (
+                status,
+                [
+                    (header::CACHE_CONTROL, "no-store"),
+                    (header::VARY, "accept-encoding"),
+                ],
+            )
+                .into_response();
+        }
+    };
+    let mut response = (
         [
             (header::CONTENT_TYPE, asset.content_type),
             (header::CACHE_CONTROL, "public, max-age=31536000, immutable"),
+            (header::VARY, "accept-encoding"),
         ],
-        asset.bytes,
+        bytes,
     )
-        .into_response()
+        .into_response();
+    if let Some(encoding) = encoding {
+        response
+            .headers_mut()
+            .insert(header::CONTENT_ENCODING, HeaderValue::from_static(encoding));
+    }
+    response
 }
 
 #[cfg(test)]

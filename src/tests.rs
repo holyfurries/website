@@ -13,6 +13,153 @@ fn test_state() -> AppState {
 }
 
 #[tokio::test]
+async fn precompressed_assets_preserve_content_and_negotiate_encodings() {
+    use std::io::Read;
+
+    let app = router(test_state());
+    for asset in assets::ASSETS {
+        for (encoding, encoded) in [("br", asset.brotli), ("gzip", asset.gzip)] {
+            let Some(encoded) = encoded else { continue };
+            assert!(
+                encoded.len() < asset.bytes.len(),
+                "{}: {encoding}",
+                asset.path
+            );
+            let mut decoded = Vec::new();
+            if encoding == "br" {
+                brotli::Decompressor::new(encoded, 4096)
+                    .read_to_end(&mut decoded)
+                    .unwrap();
+            } else {
+                flate2::read::GzDecoder::new(encoded)
+                    .read_to_end(&mut decoded)
+                    .unwrap();
+            }
+            assert_eq!(decoded, asset.bytes, "{}: {encoding}", asset.path);
+            let response = app
+                .clone()
+                .oneshot(
+                    Request::get(asset.url)
+                        .header(header::ACCEPT_ENCODING, encoding)
+                        .body(Body::empty())
+                        .unwrap(),
+                )
+                .await
+                .unwrap();
+            assert_eq!(response.status(), StatusCode::OK);
+            assert_eq!(response.headers()[header::CONTENT_ENCODING], encoding);
+            assert_eq!(
+                response.headers()[header::CONTENT_LENGTH],
+                encoded.len().to_string()
+            );
+            assert_eq!(response.headers()[header::VARY], "accept-encoding");
+            assert_eq!(
+                response.into_body().collect().await.unwrap().to_bytes(),
+                encoded
+            );
+        }
+        if asset.content_type.starts_with("image/") && asset.content_type != "image/svg+xml" {
+            assert!(asset.gzip.is_none());
+            assert!(asset.brotli.is_none());
+        }
+    }
+    let asset = assets::ASSETS
+        .iter()
+        .find(|asset| asset.path == "site.css")
+        .unwrap();
+    for (accepted, expected) in [
+        ("", None),
+        ("identity", None),
+        ("gzip", Some("gzip")),
+        ("gzip, br", Some("br")),
+        ("GZip;Q=1.000, BR;q=0.7", Some("gzip")),
+        ("gzip;q=0.2, br;q=0.8", Some("br")),
+        ("gzip;q=0.5, identity;q=1", None),
+        ("*", Some("br")),
+        ("br;q=0, *;q=1", Some("gzip")),
+        ("br;q=0, gzip;q=0", None),
+        ("br;q=1.001, gzip;q=0.1234", None),
+        ("br;q=NaN, gzip;q=-1", None),
+        ("br;q=0.9;extra=1, gzip;q=1e0", None),
+        ("br;q=0, br;q=1", None),
+    ] {
+        let response = app
+            .clone()
+            .oneshot(
+                Request::get(asset.url)
+                    .header(header::ACCEPT_ENCODING, accepted)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::OK, "{accepted}");
+        assert_eq!(
+            response
+                .headers()
+                .get(header::CONTENT_ENCODING)
+                .map(|value| value.to_str().unwrap()),
+            expected,
+            "{accepted}"
+        );
+    }
+    for accepted in [
+        "*;q=0",
+        "identity;q=0, br;q=0, gzip;q=0",
+        "deflate, identity;q=0",
+    ] {
+        let response = app
+            .clone()
+            .oneshot(
+                Request::get(asset.url)
+                    .header(header::ACCEPT_ENCODING, accepted)
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(response.status(), StatusCode::NOT_ACCEPTABLE, "{accepted}");
+        assert_eq!(response.headers()[header::CACHE_CONTROL], "no-store");
+    }
+    let response = app
+        .clone()
+        .oneshot(
+            Request::get(asset.url)
+                .header(header::ACCEPT_ENCODING, "gzip;q=0.5")
+                .header(header::ACCEPT_ENCODING, "br;q=1")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.headers()[header::CONTENT_ENCODING], "br");
+    let response = app
+        .clone()
+        .oneshot(
+            Request::head(asset.url)
+                .header(header::ACCEPT_ENCODING, "br")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response.headers()[header::CONTENT_ENCODING], "br");
+    assert_eq!(
+        response.headers()[header::CONTENT_LENGTH],
+        asset.brotli.unwrap().len().to_string()
+    );
+    assert!(
+        response
+            .into_body()
+            .collect()
+            .await
+            .unwrap()
+            .to_bytes()
+            .is_empty()
+    );
+}
+
+#[tokio::test]
 async fn public_pages_links_metadata_and_assets() {
     let app = router(test_state());
     for path in [

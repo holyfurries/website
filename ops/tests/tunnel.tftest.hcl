@@ -33,6 +33,44 @@ run "reject_arbitrary_hostname" {
   expect_failures = [var.tunnel_id]
 }
 
+run "respect_origin_caching_and_enable_modern_transport" {
+  command = plan
+
+  assert {
+    condition     = cloudflare_zone_setting.browser_cache.setting_id == "browser_cache_ttl" && cloudflare_zone_setting.browser_cache.value == 0
+    error_message = "Browser caching must respect origin cache headers instead of a zone-wide TTL floor."
+  }
+
+  assert {
+    condition     = cloudflare_zone_setting.transport["http3"].value == "on" && cloudflare_zone_setting.transport["tls_1_3"].value == "on" && cloudflare_zone_setting.transport["ssl"].value == "strict" && cloudflare_zone_setting.transport["brotli"].value == "on"
+    error_message = "The edge must enable Brotli, HTTP/3, and TLS 1.3 with strict origin TLS validation."
+  }
+
+  assert {
+    condition     = cloudflare_zone_setting.transport["cname_flattening"].value == "flatten_at_root"
+    error_message = "The apex tunnel CNAME must be flattened for public DNS resolution."
+  }
+}
+
+run "compress_text_without_buffering_live_events" {
+  command = plan
+
+  assert {
+    condition     = cloudflare_ruleset.compression.phase == "http_response_compression" && length(cloudflare_ruleset.compression.rules) == 1
+    error_message = "Website compression must have one explicit text response policy."
+  }
+
+  assert {
+    condition     = cloudflare_ruleset.compression.rules[0].action == "compress_response" && cloudflare_ruleset.compression.rules[0].enabled && cloudflare_ruleset.compression.rules[0].action_parameters.algorithms[*].name == tolist(["brotli", "gzip"])
+    error_message = "Text responses must prefer Brotli with gzip fallback."
+  }
+
+  assert {
+    condition     = cloudflare_ruleset.compression.rules[0].expression == "http.host eq \"holyfurries.com\" and http.request.uri.path ne \"/events\" and (any(http.response.headers[\"content-type\"][*] contains \"text/\") or any(http.response.headers[\"content-type\"][*] contains \"javascript\") or any(http.response.headers[\"content-type\"][*] contains \"image/svg+xml\") or any(http.response.headers[\"content-type\"][*] contains \"application/xml\"))"
+    error_message = "Compression must match only website text responses, excluding live event streams."
+  }
+}
+
 run "require_modern_tls_and_hsts" {
   command = plan
 

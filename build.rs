@@ -1,5 +1,5 @@
 use sha2::{Digest, Sha256};
-use std::{env, error::Error, fmt::Write, fs, path::PathBuf};
+use std::{env, error::Error, fmt::Write, fs, io::Write as _, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn Error>> {
     println!("cargo:rerun-if-changed=build.rs");
@@ -65,9 +65,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         let target = output.join(path);
         fs::create_dir_all(target.parent().ok_or("asset has no parent directory")?)?;
         fs::write(&target, &bytes)?;
+        let mut compressed = [String::from("None"), String::from("None")];
+        if content_type.starts_with("text/") || content_type == "image/svg+xml" {
+            let mut gzip = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::best());
+            gzip.write_all(&bytes)?;
+            let gzip = gzip.finish()?;
+            let mut brotli = Vec::new();
+            brotli::BrotliCompress(
+                &mut bytes.as_slice(),
+                &mut brotli,
+                &brotli::enc::BrotliEncoderParams::default(),
+            )?;
+            for (index, (extension, encoded)) in
+                [("gz", gzip), ("br", brotli)].into_iter().enumerate()
+            {
+                if encoded.len() < bytes.len() {
+                    let encoded_target = output.join(format!("{path}.{extension}"));
+                    fs::write(&encoded_target, encoded)?;
+                    compressed[index] = format!("Some(include_bytes!({encoded_target:?}))");
+                }
+            }
+        }
+        let [gzip, brotli] = compressed;
         writeln!(
             manifest,
-            "Asset {{ path: {path:?}, url: {url:?}, content_type: {content_type:?}, bytes: include_bytes!({target:?}) }},"
+            "Asset {{ path: {path:?}, url: {url:?}, content_type: {content_type:?}, bytes: include_bytes!({target:?}), gzip: {gzip}, brotli: {brotli} }},"
         )?;
         urls.push((path, url));
     }

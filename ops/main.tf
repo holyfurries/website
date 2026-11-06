@@ -55,6 +55,26 @@ resource "cloudflare_zone_setting" "minimum_tls" {
   value      = "1.2"
 }
 
+resource "cloudflare_zone_setting" "transport" {
+  for_each = {
+    ssl              = "strict"
+    tls_1_3          = "on"
+    http3            = "on"
+    brotli           = "on"
+    cname_flattening = "flatten_at_root"
+  }
+
+  zone_id    = var.zone_id
+  setting_id = each.key
+  value      = each.value
+}
+
+resource "cloudflare_zone_setting" "browser_cache" {
+  zone_id    = var.zone_id
+  setting_id = "browser_cache_ttl"
+  value      = 0
+}
+
 resource "cloudflare_zone_setting" "hsts" {
   zone_id    = var.zone_id
   setting_id = "security_header"
@@ -136,6 +156,24 @@ resource "cloudflare_ruleset" "cache" {
       }
     }
   ]
+}
+
+resource "cloudflare_ruleset" "compression" {
+  zone_id = var.zone_id
+  name    = "Website compression"
+  kind    = "zone"
+  phase   = "http_response_compression"
+
+  rules = [{
+    ref         = "compress_text_responses"
+    description = "Prefer Brotli with gzip fallback for text, scripts, and SVGs"
+    expression  = "http.host eq \"holyfurries.com\" and http.request.uri.path ne \"/events\" and (any(http.response.headers[\"content-type\"][*] contains \"text/\") or any(http.response.headers[\"content-type\"][*] contains \"javascript\") or any(http.response.headers[\"content-type\"][*] contains \"image/svg+xml\") or any(http.response.headers[\"content-type\"][*] contains \"application/xml\"))"
+    action      = "compress_response"
+    enabled     = true
+    action_parameters = {
+      algorithms = [{ name = "brotli" }, { name = "gzip" }]
+    }
+  }]
 }
 
 output "website" {
