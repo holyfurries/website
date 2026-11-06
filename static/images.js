@@ -1,3 +1,13 @@
+/**
+ * Keeps image placeholders visible until decoding finishes and marks load failures.
+ * @module images
+ */
+
+/**
+ * Updates the containing image frame after decoding succeeds or fails.
+ * @param {HTMLImageElement} image - Image directly inside an image frame.
+ * @returns {Promise<void>}
+ */
 async function reveal_image(image) {
     try {
         await image.decode();

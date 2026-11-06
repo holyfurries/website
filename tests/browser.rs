@@ -113,6 +113,51 @@ async fn browser_navigation_layout_images_motion_and_live_catalog() {
                 assert_eq!(motion["property"], "translate");
                 assert_eq!(motion["duration"], "0.14s");
             }
+            script(
+                &client,
+                &session,
+                r#"
+                document.querySelector('.games_grid').scrollIntoView({behavior: 'instant'});
+                return true;
+            "#,
+                json!([]),
+            )
+            .await;
+            if !reduced {
+                wait(&client, &session, "return [...document.querySelectorAll('.game_card')].every(card => card.classList.contains('card_enter'))").await;
+            }
+            wait(&client, &session, "return [...document.querySelectorAll('.game_card')].every(card => card.getAnimations().length === 0)").await;
+            let cards = script(
+                &client,
+                &session,
+                r#"
+                return [...document.querySelectorAll('.game_card')].map(card => {
+                    const style = getComputedStyle(card);
+                    return {entered: card.classList.contains('card_enter'),
+                        opacity: style.opacity, scale: style.scale};
+                });
+            "#,
+                json!([]),
+            )
+            .await;
+            for card in cards.as_array().unwrap() {
+                assert_eq!(
+                    card["entered"], !reduced,
+                    "{engine}: card motion preference"
+                );
+                assert_eq!(card["opacity"], "1", "{engine}: cards stay opaque");
+                assert_eq!(
+                    card["scale"], "none",
+                    "{engine}: cards return to natural size"
+                );
+            }
+            script(
+                &client,
+                &session,
+                "window.scrollTo({top: 0, behavior: 'instant'}); return true;",
+                json!([]),
+            )
+            .await;
             if !reduced {
                 request(
                     &client,

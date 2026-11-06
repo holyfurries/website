@@ -72,6 +72,13 @@
               opentofu
               nodejs
               biome
+              superhtml
+              taplo
+              yamlfmt
+              (python3.withPackages (packages: [
+                packages.mdformat
+                packages.mdformat-gfm
+              ]))
             ];
           };
           formatter = pkgs.nixfmt;

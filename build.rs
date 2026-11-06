@@ -10,6 +10,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ("favicon.svg", "image/svg+xml"),
         ("images.js", "text/javascript; charset=utf-8"),
         ("navigation.js", "text/javascript; charset=utf-8"),
+        ("cards.js", "text/javascript; charset=utf-8"),
         ("vendor/datastar-1.0.4.js", "text/javascript; charset=utf-8"),
         ("images/crowns-adrift-island-480.webp", "image/webp"),
         ("images/crowns-adrift-island-800.webp", "image/webp"),

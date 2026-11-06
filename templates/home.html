@@ -2,6 +2,7 @@
 {% block nonce %}{{ nonce }}{% endblock %}
 {% block content %}
 <main id="main">
+	<script type="module" src="{{ crate::assets::url("cards.js") }}"></script>
 	<script type="module" src="{{ crate::assets::url("vendor/datastar-1.0.4.js") }}"></script>
 	<section class="hero wrap" aria-labelledby="hero_title">
 		<div class="hero_top"><p class="eyebrow"><span class="status_dot"></span>
